@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>COT — Reporte Digital v08</title>
+<meta name="color-scheme" content="light">
+<style>
+  :root{
+    --bg:#f6f8fb; --surface:#ffffff; --ink:#0f172a; --muted:#64748b; --line:#e5e7eb;
+    --brand:#0b74c7; --danger:#b91c1c;
+    --radius:10px; --pad:10px; --gap:4px; --thin:1px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.35 system-ui,Segoe UI,Roboto,Helvetica,Arial}
+  .wrap{max-width:1100px;margin:0 auto;padding:10px}
+  header h1{margin:0 0 4px;font-size:18px;font-weight:700}
+  header .meta{color:var(--muted);font-size:12px;margin-bottom:6px}
+  .card{background:var(--surface);border:var(--thin) solid var(--line);border-radius:var(--radius);padding:var(--pad);margin-bottom:8px}
+  .sectitle{font-weight:700;margin:0 0 4px;color:var(--ink);font-size:14px}
+  .grid{display:grid;gap:var(--gap)}
+  .g2{grid-template-columns:repeat(2,1fr); column-gap:8px}
+  .g3{grid-template-columns:repeat(3,1fr); column-gap:8px}
+
+  /* ==== COMPACTACIÓN ESPECÍFICA EN CONTENEDORES ==== */
+  #containers .container-card{padding-top:6px}
+  #containers .container-head{margin-bottom:2px}
+  #containers .g3{grid-template-columns: 1fr 1fr 1fr; column-gap:6px; row-gap:2px}
+  #containers .row{grid-template-columns:96px 1fr; gap:2px}
+  #containers label{font-size:12px;margin-bottom:0}
+  #containers .row > div[style*="display:flex"]{gap:4px}
+  /* Input N° CONTENEDOR más grande y legible */
+  #containers input[name$="_container"]{
+    font-size:16px; min-height:40px; padding:6px 8px; letter-spacing:.06ch;
+  }
+
+  /* === Ajuste tamaño y disposición de contenedores === */
+  #containers .g3 {
+    grid-template-columns: 1.1fr 1fr 1fr; /* Ajusta la proporción de las columnas */
+    column-gap: 6px;
+    row-gap: 4px;
+  }
+
+  /* Etiquetas más pequeñas y ajustadas */
+  #containers .g3 .row > label {
+    font-size: 11px; /* Reduce tamaño de texto */
+    font-weight: 600; /* Acentúa la etiqueta */
+    line-height: 1.1;
+    margin-bottom: 0;
+  }
+
+  /* Campos de entrada y selección con fuentes más pequeñas */
+  #containers .g3 .row input,
+  #containers .g3 .row select {
+    min-height: 30px;
+    font-size: 13px;
+    padding: 4px 6px;
+  }
+
+  /* Ajuste específico para el N° CONTENEDOR */
+  #containers input[name$="_container"] {
+    font-size: 13px;
+    min-height: 30px;
+    letter-spacing: 0.04ch; /* Para 11 caracteres */
+  }
+
+  /* Ajuste para N° BOOKING y Naviera */
+  #containers input[name$="_booking"],
+  #containers select[name$="_naviera_sel"] {
+    font-size: 13px;
+    min-height: 30px;
+  }
+
+  /* Campo "Otro" que aparece cuando seleccionas "Otra" en Naviera */
+  #containers input[name$="_naviera_otra"] {
+    font-size: 13px;
+    min-height: 30px;
+    padding: 4px 6px;
+  }
+
+  /* Ajuste de placeholders (texto de ejemplo) */
+  #containers input::placeholder {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* Flexbox para Naviera + Otro (alineación en una fila) */
+  #containers .row > div[style*="display:flex"] {
+    gap: 4px;
+    align-items: center;
+  }
+
+  /* Estilo para dispositivos móviles (≤600px) */
+  @media (max-width: 600px) {
+    #containers .g3 {
+      grid-template-columns: 1fr; /* Apilar todo en una columna */
+    }
+
+    #containers [name$="_naviera_otra"] {
+      width: 100%; /* Ocupa todo el ancho disponible */
+    }
+  }
+
+  /* ================================================ */
+
+  .row{display:grid;grid-template-columns:120px 1fr;gap:2px;align-items:center}
+  @media (max-width:900px){ .g3{grid-template-columns:1fr} }
+  @media (max-width:760px){ .row{grid-template-columns:1fr} .row>label{margin-bottom:1px} .g2{grid-template-columns:1fr} }
+  label{font-weight:700;color:var(--ink);font-size:12px;margin-bottom:0}
+  input,select,textarea{
+    width:100%;padding:3px 6px;border:var(--thin) solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-size:13px;min-height:30px
+  }
+  input[type=file]{padding:4px}
+  .muted{color:var(--muted);font-size:12px}
+  .actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .btn{ appearance:none;border-radius:8px;padding:6px 9px;font-weight:600;cursor:pointer;background:var(--surface);border:var(--thin) solid var(--line);color:var(--ink);font-size:13px }
+  .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+  .btn.link{border:none;background:transparent;color:var(--brand);padding:0}
+  .btn.danger{border-color:var(--danger);color:var(--danger);background:transparent}
+  .btn.sm{padding:3px 7px;font-size:12px}
+  table{width:100%;border-collapse:collapse;table-layout:fixed}
+  th,td{border:1px solid var(--line);padding:1px 3px;text-align:center}
+  th{background:#f3f6fb}
+
+  /* Etiquetas izquierda más delgadas */
+  .table-wrap tbody th{font-weight:400 !important;text-align:left;padding:1px 8px;font-size:12px;line-height:1.15}
+
+  /* Cabecera: input de hora más grande (fijo a 2 controles) */
+  .colhdr{position:relative;padding-top:2px;padding-bottom:2px}
+  .hdr-time{display:block;margin-top:2px;font-size:14px;min-height:36px}
+
+  .line{height:1px;background:var(--line);margin:6px 0}
+  .footer{font-size:12px;color:var(--muted);margin-top:6px}
+  .container-card{border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:8px;background:var(--surface)}
+  .container-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px}
+  .container-head h3{margin:0;font-size:14px;font-weight:600}
+  .uploader{border:1px dashed var(--line);background:#fbfdff;border-radius:8px;padding:8px;margin-top:6px}
+  .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:6px}
+  .thumb{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden;position:relative}
+  .thumb img{display:block;width:100%;height:72px;object-fit:cover}
+  .thumb .meta{padding:5px 6px;font-size:11px;color:var(--muted)}
+  .thumb .x{position:absolute;top:5px;right:5px;background:transparent;border:1px solid var(--danger);color:var(--danger);
+    width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;cursor:pointer}
+
+  /* Card para archivos no-imagen */
+  .filebox{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;background:#fff;padding:6px}
+  .filebox .badge{min-width:28px;height:28px;border-radius:6px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px}
+  .filebox .name{font-size:12px;color:var(--ink')}
+  .filebox .size{font-size:11px;color:var(--muted)}
+  .filebox .x{margin-left:auto;background:transparent;border:1px solid var(--danger);color:var(--danger);
+    width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;cursor:pointer}
+
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;z-index:9998}
+  .overlay.show{display:block}
+  .sheet{position:fixed;left:0;right:0;bottom:-100%;background:#fff;border-top-left-radius:14px;border-top-right-radius:14px;box-shadow:0 -12px 30px rgba(0,0,0,.25);padding:16px;transition:bottom .25s;z-index:9999}
+  .sheet.show{bottom:0}
+  .sheet .row-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+
+  .rowlbl{font-weight:400}
+
+  /* Primera columna semántica */
+  .firstcol{
+    width:32%;
+    text-align:left;
+    padding-left:10px;
+    white-space:nowrap;
+  }
+
+  /* === Mejoras específicas para móvil (≤600px) === */
+  @media (max-width: 600px){
+    .table-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .table-wrap table{ min-width: 560px; } /* 2 controles sin aplaste */
+
+    .firstcol{ width:28%; font-size:12px; }
+    .table-wrap tbody th{ font-size:11px; padding:2px 6px; white-space:nowrap; }
+
+    .table-wrap td input{ min-height:40px; font-size:16px; }
+    .hdr-time{ font-size:16px; min-height:40px; }
+
+    input, select, textarea{ font-size:16px; } /* evita zoom iOS */
+    .row{ grid-template-columns:1fr; }
+    .g3, .g2{ grid-template-columns:1fr; }
+
+    #containers .row{ grid-template-columns: 1fr !important; gap: 4px; }
+    #containers label{ font-size: 12px; margin-bottom: 2px; }
+    #containers .row > div[style*="display:flex"]{ flex-wrap: wrap; }
+    #containers [name$="_naviera_otra"]{ width: 100%; margin-top: 4px; }
+  }
+  /* === FIN móvil === */
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>REPORTE TRATAMIENTO DE FRÍO — COT</h1>
+    <div class="meta">Controles obligatorios • Fotos por unidad • Máx. 3 contenedores</div>
+  </header>
+
+  <form id="cotForm" novalidate enctype="multipart/form-data">
+    <div class="card">
+      <div class="sectitle">Encabezado</div>
+      <div class="grid g3">
+        <div class="row"><label>FOLIO</label><input name="folio" required placeholder="Ej: 000123"></div>
+        <div class="row"><label>Fecha servicio</label><input type="date" name="fecha_servicio" required></div>
+        <div class="row"><label>Hora de llegada Planta</label><input type="time" step="60" name="hora_llegada" required></div>
+        <div class="row"><label>Hora inicio primera calibración</label><input type="time" step="60" name="hora_inicio_cal" required></div>
+        <div class="row"><label>Hora término servicio</label><input type="time" step="60" name="hora_termino" required></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sectitle">Contenedores</div>
+      <div id="containers"></div>
+      <div class="actions">
+        <button type="button" class="btn link" id="addContainerBtn">+ Añadir contenedor</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sectitle">Datos generales finales</div>
+      <div class="grid g2">
+        <div class="row"><label>Nombre del técnico</label><input name="tecnico" required></div>
+        <div class="row"><label>Planta / Dirección</label><input name="planta" required></div>
+        <div class="row"><label>Responsable Packing</label><input name="responsable_packing" required></div>
+        <div class="row"><label>Viaje / Embarque</label><input name="viaje" placeholder=" "></div>
+        <div class="row" style="grid-column:1/-1"><label>Comentarios</label><textarea name="comentarios" rows="3" placeholder=" "></textarea></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sectitle">Documento de Planta (Hoja firmada) — General</div>
+      <div class="uploader">
+        <div class="actions">
+          <!-- Cualquier tipo de archivo, SOLO 1 -->
+          <input id="pickDocPlanta" type="file" style="display:none" accept="*/*">
+          <button type="button" class="btn" id="btnDocPlanta">Añadir documento</button>
+          <button type="button" class="btn danger" id="btnDocPlantaClear">Borrar</button>
+          <span class="muted">Obligatorio (1 archivo).</span>
+        </div>
+        <div class="thumbs" id="thumbsDocPlanta"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="actions">
+        <button type="button" class="btn" id="testBtn">Probar validaciones</button>
+        <button type="submit" id="submitBtn" class="btn primary">Enviar reporte</button>
+      </div>
+      <div class="footer" id="msg">Listo para enviar.</div>
+      <div id="loadingIcon" style="display:none;">Cargando...</div>
+    </div>
+  </form>
+</div>
+
+<div id="overlay" class="overlay"></div>
+<div id="mSheet" class="sheet"></div>
+
+<!-- === NEW: Google Identity Services loader (necesario para token OAuth) -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<script>
+/* ==========
+   Utilidades
+========== */
+const $ = s=>document.querySelector(s);
+const $$ = s=>Array.from(document.querySelectorAll(s));
+
+/* ========== NEW: CONFIG OAuth + carpeta base Drive ========== */
+const GIS_CONFIG = {
+  CLIENT_ID: '212179869111-1g9f7ga5be885t5qf5bcsouk23ud19cd.apps.googleusercontent.com', // <-- PONER TU CLIENT_ID
+  SCOPES: 'https://www.googleapis.com/auth/drive.file'
+};
+// Si quieres que todo nazca en una carpeta específica, pon aquí su ID.
+// Si lo dejas vacío, nacerán en "Mi unidad" del usuario.
+let FOLDER_BASE_ID = '1daPx7kqS6hEtwornYcBGPoGHaLFSDMGw'; // <-- opcional: '1AbCDEF...'
+
+/* ==========
+   Estado
+========== */
+let uid = 0;
+const photoStores = new Map();   // id -> [{name,file,size,mimeType,isImg}]
+let plantaDoc = null;            // {name,file,size,mimeType,isImg} | null
+
+/* ========== NEW: AUTH (GIS) ========== */
+let _gisToken = null;
+let _gisTokenExp = 0;
+let _gisClient = null;
+let _gisPendingResolve = null, _gisPendingReject = null;
+
+function initGIS() {
+  if (_gisClient) return;
+  _gisClient = google.accounts.oauth2.initTokenClient({
+    client_id: GIS_CONFIG.CLIENT_ID,
+    scope: GIS_CONFIG.SCOPES,
+    prompt: '',
+    callback: (resp) => {
+      if (resp && resp.access_token) {
+        _gisToken = resp.access_token;
+        _gisTokenExp = Date.now() + ((resp.expires_in || 3600) * 1000) - 60000;
+        if (_gisPendingResolve) _gisPendingResolve(_gisToken);
+        _gisPendingResolve = _gisPendingReject = null;
+      } else {
+        if (_gisPendingReject) _gisPendingReject(new Error('No se obtuvo token GIS'));
+        _gisPendingResolve = _gisPendingReject = null;
+      }
+    }
+  });
+}
+
+function getTokenGIS(interactive = true){
+  return new Promise((resolve, reject)=>{
+    if (_gisToken && Date.now() < _gisTokenExp) return resolve(_gisToken);
+    _gisPendingResolve = resolve;
+    _gisPendingReject = reject;
+    if (!_gisClient) initGIS();
+    try {
+      _gisClient.requestAccessToken({ prompt: interactive ? 'consent' : '' });
+    } catch(e) { reject(e); }
+  });
+}
+
+/* ========== NEW: Helpers Drive — subida resumible ========== */
+async function startResumableSession(file, parentId, token){
+  const meta = { name: file.name };
+  if (parentId) meta.parents = [parentId];
+  const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable', {
+    method:'POST',
+    headers:{
+      'Authorization':'Bearer '+token,
+      'Content-Type':'application/json; charset=UTF-8',
+      'X-Upload-Content-Type': file.type || 'application/octet-stream',
+      'X-Upload-Content-Length': file.size
+    },
+    body: JSON.stringify(meta)
+  });
+  if (!r.ok) throw new Error('Error init resumable: '+r.status+' '+(await r.text()));
+  const loc = r.headers.get('Location');
+  if (!loc) throw new Error('Sin Location de sesión resumible');
+  return loc;
+}
+
+async function uploadFileToDrive(file, parentId){
+  const token = await getTokenGIS(true);
+  const sessionURL = await startResumableSession(file, parentId, token);
+  const put = await fetch(sessionURL, {
+    method:'PUT',
+    headers:{
+      'Authorization':'Bearer '+token,
+      'Content-Type': file.type || 'application/octet-stream',
+      'Content-Length': String(file.size)
+    },
+    body: file
+  });
+  if (!put.ok) throw new Error('Error upload: '+put.status+' '+(await put.text()));
+  const json = await put.json();
+  return json.id; // fileId
+}
+
+/* ========== NEW: limitador de concurrencia simple ========== */
+function createLimiter(max=3){
+  let active=0, queue=[];
+  const next=()=>{ if(active>=max || queue.length===0) return; active++; const {fn,resolve,reject}=queue.shift(); fn().then((v)=>{active--; resolve(v); next();}).catch(err=>{active--; reject(err); next();}); };
+  return function run(fn){ return new Promise((resolve,reject)=>{ queue.push({fn,resolve,reject}); next(); }); };
+}
+const runLimited = createLimiter(3); // 3 subidas en paralelo
+
+/* ==========
+   Helpers
+========== */
+function truncate(s,n){ return s.length>n ? s.slice(0,n-1)+'…' : s; }
+function safeName(s){ return (s||'FILE').replace(/[^\w\.\-]+/g,'_'); }
+function formatBytes(b){
+  if (!b && b!==0) return '';
+  const u=['B','KB','MB','GB']; let i=0; let v=b;
+  while(v>=1024 && i<u.length-1){ v/=1024; i++; }
+  return `${v.toFixed(v<10&&i>0?1:0)} ${u[i]}`;
+}
+function isImageLike(f){
+  if(!f) return false;
+  if(f.type) return f.type.startsWith('image/');
+  const m = (f.name||'').toLowerCase().match(/\.(\w+)$/);
+  if(!m) return false;
+  return ['jpg','jpeg','png','gif','webp','bmp','heic','heif','tif','tiff'].includes(m[1]);
+}
+function fileBadgeExt(name){
+  const m = (name||'').toLowerCase().match(/\.(\w+)$/);
+  return (m?m[1]:'FILE').slice(0,4).toUpperCase();
+}
+
+/* ==========
+   Límites de compresión (solo imágenes)
+========== */
+const MAX_W=760, MAX_H=600, MAX_SIZE=150*1024;
+const MAX_W_DOC=1200, MAX_H_DOC=900, MAX_SIZE_DOC=400*1024;
+
+/* COMPRESIÓN DE IMAGEN (función única) */
+async function compressImage(file, {w=MAX_W, h=MAX_H, max=MAX_SIZE}={}) {
+  if(!file || !file.type || !file.type.startsWith('image/')) return file;
+  const bitmap = await createImageBitmap(file);
+  let W=bitmap.width,H=bitmap.height;
+  const ratio=Math.min(w/W, h/H, 1); W=Math.round(W*ratio); H=Math.round(H*ratio);
+  const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d'); ctx.drawImage(bitmap,0,0,W,H);
+  let q=0.9; let blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',q));
+  while(blob && blob.size>max && q>0.6){ q-=0.05; blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',q)); }
+  if(!blob) return file;
+  return new File([blob], file.name.replace(/\.[^.]+$/i,'.jpg'), {type:'image/jpeg'});
+}
+
+/* Helpers para DataURL/base64 (se mantienen por si los quieres usar) */
+function fileToDataURL(file){
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = e => resolve(e.target.result);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+async function fileToDataURLSmart(file, compressCfg){
+  const f = (file && isImageLike(file))
+    ? await compressImage(file, compressCfg||{})
+    : file;
+  return fileToDataURL(f);
+}
+
+/* =========================
+   Sección CONTENEDORES
+   - Tabla 2 controles (1° y Control final)
+   - Fotos por unidad (acepta CUALQUIER archivo; si es imagen, preview)
+   - Datalog por unidad (1 archivo)
+========================= */
+
+function enforceFirstNotDeletable(){
+  const cards = $$('#containers .container-card');
+  cards.forEach((c,i)=>{
+    const del = c.querySelector('[data-del]');
+    if(del) del.style.display = (i===0 ? 'none' : '');
+  });
+}
+function updateAddButtonState(){
+  const btn = $('#addContainerBtn');
+  const count = $$('#containers .container-card').length;
+  if(count >= 3){ btn.disabled = true; btn.textContent = 'Máx. 3 contenedores'; }
+  else { btn.disabled = false; btn.textContent = '+ Añadir contenedor'; }
+}
+
+/* Cabecera de tabla 2 controles */
+function buildTableFixed2(id){
+  const colsHdr = ['1° control','Control final']; // fijos
+  const filas = [
+    ['USDA 1 (°C)','usda1'],
+    ['USDA 2 (°C)','usda2'],
+    ['USDA 3 (°C)','usda3'],
+    ['Set Point (°C)','sp'],
+    ['Temperatura Suministro (°C)','sup'],
+    ['Temperatura Retorno (°C)','ret']
+  ];
+  const dataW = Math.max(12, Math.floor(60/colsHdr.length));
+  let html = '<table><thead><tr>';
+  html += '<th class="firstcol">Hora control temperatura</th>';
+  colsHdr.forEach((h,i)=>{
+    html += `<th class="colhdr" style="width:${dataW}%">
+              ${h}
+              <input class="hdr-time" type="time" step="60" name="c${id}_ht_${i}" required>
+            </th>`;
+  });
+  html += '</tr></thead><tbody>';
+  filas.forEach(([label,key])=>{
+    html += '<tr><th style="text-align:left;padding-left:10px;font-weight:700">'+label+'</th>';
+    for(let c=0;c<colsHdr.length;c++){
+      const name = `c${id}_${key}_${c}`;
+      html += `<td><input type="text" name="${name}"></td>`;
+    }
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  return html;
+}
+
+/* Lecturas/restore */
+function readHeaderTimes(card){
+  const arr=[];
+  for(let i=0;i<2;i++){
+    const inp = card.querySelector(`input[name="c${card.dataset.uid}_ht_${i}"]`);
+    arr[i] = inp ? inp.value : '';
+  }
+  return arr;
+}
+function readTableValues(card){
+  const keys=['usda1','usda2','usda3','sp','sup','ret'];
+  const vals={}; keys.forEach(k=> vals[k]=[]);
+  const id = card.dataset.uid;
+  for(let c=0;c<2;c++){
+    keys.forEach(key=>{
+      const name=`c${id}_${key}_${c}`;
+      const inp=card.querySelector(`input[name="${name}"]`);
+      vals[key][c]= inp? inp.value : '';
+    });
+  }
+  return vals;
+}
+
+/* Render miniaturas/archivos por unidad */
+function renderThumbs(id, host){
+  const store = photoStores.get(Number(id)) || [];
+  host.innerHTML='';
+  if(!store.length){ host.innerHTML='<div class="muted">Sin archivos.</div>'; return; }
+  store.forEach((p,i)=>{
+    const ext = fileBadgeExt(p.name);
+    if(p.isImg){
+      const url = URL.createObjectURL(p.file);
+      const card = document.createElement('div');
+      card.className='thumb';
+      card.innerHTML = `
+        <img src="${url}" alt="archivo ${i+1}">
+        <div class="x" title="Eliminar" data-x="${i}">×</div>
+        <div class="meta">${truncate(p.name,22)} · ${formatBytes(p.size)}</div>`;
+      host.appendChild(card);
+      card.querySelector('.x').addEventListener('click', ()=>{
+        URL.revokeObjectURL(url);
+        store.splice(i,1); renderThumbs(id, host);
+      });
+    }else{
+      const wrap = document.createElement('div');
+      wrap.className = 'filebox';
+      wrap.innerHTML = `
+        <div class="badge">${ext}</div>
+        <div class="name">${truncate(p.name,38)}</div>
+        <div class="size">${formatBytes(p.size)}</div>
+        <button type="button" class="x" data-x="${i}">×</button>`;
+      host.appendChild(wrap);
+      wrap.querySelector('.x').addEventListener('click', ()=>{
+        store.splice(i,1); renderThumbs(id, host);
+      });
+    }
+  });
+}
+
+/* ADD CONTAINER */
+function addContainer(){
+  if($$('#containers .container-card').length >= 3){ updateAddButtonState(); return; }
+
+  uid++;
+  const id = uid;
+  photoStores.set(id, []); 
+
+  const card = document.createElement('div');
+  card.className='container-card';
+  card.dataset.uid = id;
+
+  card.innerHTML = `
+    <div class="container-head">
+      <h3 data-title>Contenedor</h3>
+      <div class="actions">
+        <button type="button" class="btn danger sm" data-del>Eliminar contenedor</button>
+      </div>
+    </div>
+
+    <div class="grid g3">
+      <div class="row">
+        <label>N° CONTENEDOR</label>
+        <input name="c${id}_container" required placeholder="MNBU1234567"
+               pattern="[A-Za-z]{4}\\d{7}" title="Formato ABCD1234567 (4 letras + 7 dígitos)">
+      </div>
+      <div class="row"><label>N° BOOKING</label><input name="c${id}_booking" required></div>
+      <div class="row">
+        <label>Naviera</label>
+        <div style="display:flex;gap:4px">
+          <select name="c${id}_naviera_sel" required>
+            <option value="">Selecciona…</option>
+            <option>Maersk Line</option>
+            <option>Hapag Lloyd</option>
+            <option>Cosco Shipping</option>
+            <option>Pil</option>
+            <option>Otra</option>
+          </select>
+          <input name="c${id}_naviera_otra" style="display:none" placeholder="Especifique…">
+        </div>
+      </div>
+    </div>
+
+    <div class="line"></div>
+
+    <div class="table-wrap">${buildTableFixed2(id)}</div>
+
+    <div class="uploader">
+      <div class="sectitle" style="margin:6px 0 4px">Archivos/fotos de esta unidad</div>
+      <div class="actions">
+        <!-- acepta CUALQUIER archivo; múltiples -->
+        <input id="pickFotos_${id}" type="file" style="display:none" multiple accept="*/*">
+        <button type="button" class="btn sm" data-pickfotos>Añadir archivo(s)</button>
+        <button type="button" class="btn danger sm" data-cleanfotos>Borrar todos</button>
+        <span class="muted">Obligatorio al menos 1.</span>
+      </div>
+      <div class="thumbs" id="thumbs_${id}"></div>
+    </div>
+  `;
+
+  /* Delegación de clicks dentro de cada card */
+  card.addEventListener('click', (ev)=>{
+    const t = ev.target;
+
+    if(t.matches('[data-del]')){
+      if(card.parentElement){
+        mobileConfirm('¿Eliminar este contenedor?', ()=>{
+          const idNum = Number(card.dataset.uid);
+          photoStores.delete(idNum); 
+          card.remove(); reindexTitles(); enforceFirstNotDeletable(); updateAddButtonState();
+        });
+      }
+    }
+
+    if(t.matches('[data-pickfotos]')){ card.querySelector('#pickFotos_'+id).click(); }
+    if(t.matches('[data-cleanfotos]')){
+      const store = photoStores.get(id)||[];
+      if(!store.length) return;
+      mobileConfirm('¿Borrar todos los archivos de esta unidad?', ()=>{
+        store.length=0; renderThumbs(id, card.querySelector('#thumbs_'+id));
+      });
+    }
+  });
+
+  /* Cambio naviera -> mostrar "Otra" */
+  card.addEventListener('change', (ev)=>{
+    const t=ev.target;
+    if(t.name===`c${id}_naviera_sel`){
+      const otra = card.querySelector(`[name="c${id}_naviera_otra"]`);
+      const show = t.value==='Otra';
+      otra.style.display = show? 'block':'none';
+      if(show) otra.focus();
+    }
+  });
+
+  /* Carga de archivos/fotos (múltiples, cualquier tipo) */
+  card.querySelector('#pickFotos_'+id).addEventListener('change', async (e)=>{
+    const files = Array.from(e.target.files||[]);
+    if(!files.length) return;
+    const store = photoStores.get(id)||[];
+
+    // (se mantiene compresión imagen)
+    for(const f of files){
+      let fOut = f;
+      let isImg = isImageLike(f);
+      if(isImg){
+        fOut = await compressImage(f); // comprime imagen
+      }
+      store.push({
+        name: safeName(f.name).replace(/\s+/g,'_'),
+        file: fOut,
+        size: fOut.size || f.size,
+        mimeType: fOut.type || f.type || 'application/octet-stream',
+        isImg
+      });
+    }
+    photoStores.set(id, store); 
+    renderThumbs(id, card.querySelector('#thumbs_'+id)); 
+    e.target.value='';
+  });
+
+  $('#containers').appendChild(card);
+  reindexTitles(); enforceFirstNotDeletable(); updateAddButtonState();
+}
+
+function reindexTitles(){ 
+  $$('#containers .container-card').forEach((c,idx)=>{ 
+    c.querySelector('[data-title]').textContent = `Contenedor #${idx+1}`; 
+  }); 
+}
+
+/* INIT contenedores */
+addContainer();
+document.getElementById('addContainerBtn').addEventListener('click', addContainer);
+
+/* =========================
+   UI hoja de confirmación (overlay + bottom sheet)
+========================= */
+function mobileConfirm(message, onOK){
+  const ovl = document.getElementById('overlay');
+  const sh  = document.getElementById('mSheet');
+  sh.innerHTML = `
+    <div style="font-weight:700;margin-bottom:8px">Confirmar</div>
+    <div class="muted" style="margin-bottom:10px">${message}</div>
+    <div class="row-actions">
+      <button type="button" class="btn" id="mCancel">Cancelar</button>
+      <button type="button" class="btn danger" id="mOk">Aceptar</button>
+    </div>`;
+  ovl.classList.add('show'); sh.classList.add('show');
+  const close = ()=>{ ovl.classList.remove('show'); sh.classList.remove('show'); };
+  document.getElementById('mCancel').onclick = close;
+  document.getElementById('mOk').onclick = ()=>{ close(); onOK && onOK(); };
+  ovl.onclick = close;
+}
+
+/* =========================
+   Documento de planta (SOLO 1 archivo, cualquier tipo)
+========================= */
+const pickDocPlanta = $('#pickDocPlanta');
+const thumbsDocPlanta = $('#thumbsDocPlanta');
+
+$('#btnDocPlanta').addEventListener('click', ()=> pickDocPlanta.click());
+$('#btnDocPlantaClear').addEventListener('click', ()=>{
+  if(!plantaDoc) return;
+  mobileConfirm('¿Borrar documento de planta?', ()=>{
+    plantaDoc = null; renderPlantaDoc();
+  });
+});
+
+pickDocPlanta.addEventListener('change', async ()=>{
+  const f = (pickDocPlanta.files||[])[0];
+  if(!f) return;
+  let fOut = f;
+  const isImg = isImageLike(f);
+  if(isImg){
+    fOut = await compressImage(f, {w:MAX_W_DOC, h:MAX_H_DOC, max:MAX_SIZE_DOC});
+  }
+  plantaDoc = {
+    name: safeName(f.name),
+    file: fOut,
+    size: fOut.size || f.size,
+    mimeType: fOut.type || f.type || 'application/octet-stream',
+    isImg
+  };
+  renderPlantaDoc();
+  pickDocPlanta.value = '';
+});
+
+function renderPlantaDoc(){
+  thumbsDocPlanta.innerHTML = '';
+  if(!plantaDoc){
+    thumbsDocPlanta.innerHTML = '<div class="muted">Sin archivo.</div>';
+    return;
+  }
+  if(plantaDoc.isImg){
+    const url = URL.createObjectURL(plantaDoc.file);
+    const card = document.createElement('div');
+    card.className='thumb';
+    card.innerHTML = `
+      <img src="${url}" alt="doc planta">
+      <div class="x" title="Eliminar">×</div>
+      <div class="meta">${truncate(plantaDoc.name,24)} · ${formatBytes(plantaDoc.size)}</div>`;
+    thumbsDocPlanta.appendChild(card);
+    card.querySelector('.x').addEventListener('click', ()=>{
+      URL.revokeObjectURL(url);
+      plantaDoc = null; renderPlantaDoc();
+    });
+  }else{
+    const wrap = document.createElement('div');
+    wrap.className = 'filebox';
+    wrap.innerHTML = `
+      <div class="badge">${fileBadgeExt(plantaDoc.name)}</div>
+      <div class="name">${truncate(plantaDoc.name,38)}</div>
+      <div class="size">${formatBytes(plantaDoc.size)}</div>
+      <button type="button" class="x">×</button>`;
+    thumbsDocPlanta.appendChild(wrap);
+    wrap.querySelector('.x').addEventListener('click', ()=>{
+      plantaDoc = null; renderPlantaDoc();
+    });
+  }
+}
+
+/* =========================
+   Validaciones
+========================= */
+function validForm(){
+  const need = ['folio','fecha_servicio','hora_llegada','hora_inicio_cal','hora_termino','tecnico','planta','responsable_packing'];
+  for(const n of need){
+    const el = $(`[name="${n}"]`);
+    if(!el || !el.value) return {ok:false,msg:'Completa los datos generales obligatorios.'};
+  }
+  const cards = $$('#containers .container-card');
+  if(!cards.length) return {ok:false,msg:'Agrega al menos un contenedor.'};
+
+  for(const card of cards){
+    const id = card.dataset.uid;
+    const cont = $(`[name="c${id}_container"]`)?.value.trim().toUpperCase() || '';
+    const book = $(`[name="c${id}_booking"]`)?.value.trim() || '';
+    if(!/^[A-Z]{4}\d{7}$/.test(cont)) return {ok:false,msg:'N° Contenedor inválido (ABCD1234567).'};
+    if(!book) return {ok:false,msg:'Falta N° Booking.'};
+
+    const navSel  = $(`[name="c${id}_naviera_sel"]`);
+    const navOtra = $(`[name="c${id}_naviera_otra"]`);
+    if(!navSel || !navSel.value) return {ok:false,msg:'Seleccione la naviera.'};
+    if(navSel.value==='Otra' && !navOtra.value.trim()) return {ok:false,msg:'Indique la naviera (Otra).'};
+
+    for(let i=0;i<2;i++){
+      const t = card.querySelector(`input[name="c${id}_ht_${i}"]`);
+      if(!t || !t.value) return {ok:false,msg:'Indique las horas de ambos controles.'};
+    }
+
+    const files = photoStores.get(Number(id)) || [];
+    if(!files.length) return {ok:false,msg:`Contenedor #${Array.from(cards).indexOf(card)+1}: falta adjuntar archivos/fotos.`};
+  }
+
+  if(!plantaDoc) return {ok:false,msg:'Debes adjuntar el documento de planta (1 archivo).'};
+
+  return {ok:true};
+}
+
+/* =========================
+   GAS endpoint
+========================= */
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyZAxphpz8TjIFkdx6pnK_kGlEHBt5_Atw82Yf2DWFnvAqH2QUyNqkAWzTVwSvwz_gp/exec';
+
+/* === NEW: construir JSON (sin blobs) con fileIds === */
+function buildPayloadJSON(uploadMap, plantaDocId){
+  const gen = {};
+  ['folio','fecha_servicio','hora_llegada','hora_inicio_cal','hora_termino','tecnico','planta','responsable_packing','viaje','comentarios']
+    .forEach(f=>{
+      const el = document.querySelector(`[name="${f}"]`);
+      gen[f] = el ? (el.value ?? '') : '';
+    });
+
+  const cards = Array.from(document.querySelectorAll('#containers .container-card'));
+  const containers = cards.map((card, idx)=>{
+    const id = card.dataset.uid;
+    const cont   = (document.querySelector(`[name="c${id}_container"]`)?.value || '').trim().toUpperCase();
+    const book   = (document.querySelector(`[name="c${id}_booking"]`)?.value || '').trim();
+    const navSel = (document.querySelector(`[name="c${id}_naviera_sel"]`)?.value || '');
+    const navOtra= (document.querySelector(`[name="c${id}_naviera_otra"]`)?.value || '');
+    const ht = readHeaderTimes(card);
+    const lecturas = readTableValues(card);
+    const fileIds = uploadMap.get(Number(id)) || [];
+    return {
+      container: cont,
+      booking: book,
+      naviera_sel: navSel,
+      naviera_otra: navOtra,
+      ht,
+      lecturas,
+      fileIds
+    };
+  });
+
+  return {
+    tipo_form: 'COT_v6',
+    ...gen,
+    plantaDocId: plantaDocId || '',
+    containers_count: String(containers.length),
+    containers
+  };
+}
+
+/* =========================
+   UI de estado
+========================= */
+function showLoading() {
+  $('#loadingIcon').style.display = 'inline';
+  $('#submitBtn').disabled = true;
+  $('#testBtn').disabled = true;
+  $('#msg').textContent = 'Enviando...';
+}
+function hideLoading() {
+  $('#loadingIcon').style.display = 'none';
+  $('#submitBtn').disabled = false;
+  $('#testBtn').disabled = false;
+}
+function showSuccess(note) {
+  hideLoading();
+  $('#msg').innerHTML = '¡Enviado con éxito! ' + (note?`<span class="muted">(${note})</span>`:'');
+}
+function showError(msg){
+  hideLoading();
+  $('#msg').textContent = 'Error: ' + (msg || 'desconocido');
+}
+
+/* === NEW: envío JSON al GAS (sin blobs) === */
+async function postJSONToGas(payload){
+  const r = await fetch(GAS_URL, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if(!r.ok){
+    throw new Error(`HTTP ${r.status} ${r.statusText} - ${await r.text()}`);
+  }
+  return await r.text();
+}
+
+/* --- SUBMIT: NUEVO FLUJO Direct-to-Drive + JSON --- */
+const formEl = document.getElementById('cotForm');
+if (formEl){
+  formEl.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+
+    const v = validForm();
+    if(!v.ok){
+      $('#msg').textContent = v.msg || 'Formulario inválido.';
+      return;
+    }
+
+    showLoading();
+    try{
+      // 1) Garantizar token GIS
+      await getTokenGIS(true);
+
+      // 2) Subir Documento de planta
+      let plantaDocId = '';
+      if (plantaDoc && plantaDoc.file){
+        plantaDocId = await runLimited(()=>uploadFileToDrive(plantaDoc.file, FOLDER_BASE_ID));
+      }
+
+      // 3) Subir fotos por contenedor (concurrencia limitada)
+      const cards = Array.from(document.querySelectorAll('#containers .container-card'));
+      const uploadMap = new Map(); // idNum -> [fileIds]
+
+      for (const card of cards){
+        const idNum = Number(card.dataset.uid);
+        const store = photoStores.get(idNum) || [];
+        const ids = [];
+        // sube en paralelo con runLimited
+        await Promise.all(store.map(p=> runLimited(async ()=>{
+          const fileId = await uploadFileToDrive(p.file, FOLDER_BASE_ID);
+          ids.push(fileId);
+        })));
+        uploadMap.set(idNum, ids);
+      }
+
+      // 4) Armar JSON y enviar a GAS
+      const payload = buildPayloadJSON(uploadMap, plantaDocId);
+      const res = await postJSONToGas(payload);
+      console.log('Direct-to-Drive OK:', res);
+      showSuccess('Directo a Drive + JSON');
+
+      // (opcional) limpiar estado tras éxito
+      // formEl.reset(); // si quieres
+      // photoStores.clear(); renderThumbs de cada card, etc.
+
+    }catch(err){
+      console.error('Error envío COT', err);
+      showError(err?.message || 'Error de envío');
+    }
+  }, true);
+}
+
+/* Botón de prueba de validaciones */
+document.getElementById('testBtn')?.addEventListener('click', ()=>{
+  const v = validForm();
+  $('#msg').textContent = v.ok ? 'Validaciones OK.' : v.msg;
+});
+
+/* =========================
+   UX extra: título dinámico y formato contenedor
+========================= */
+document.addEventListener('input', (e)=>{
+  const el = e.target;
+
+  // Forzar formato ISO 6346 (4 letras + 7 dígitos) y mayúsculas (máx. 11)
+  if(el.name && /_container$/.test(el.name)){
+    const raw = (el.value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+    el.value = raw.slice(0,11);
+
+    const card = el.closest('.container-card');
+    if(card){
+      const idx = Array.from($$('#containers .container-card')).indexOf(card)+1;
+      const h = card.querySelector('[data-title]');
+      h.textContent = `Contenedor #${idx}${el.value ? ' · '+el.value : ''}`;
+    }
+  }
+});
+
+/* Cerrar overlay con ESC */
+document.addEventListener('keydown', (e)=>{
+  if(e.key==='Escape'){
+    document.getElementById('overlay')?.classList.remove('show');
+    document.getElementById('mSheet')?.classList.remove('show');
+  }
+});
+
+/* Polyfill simple para createImageBitmap en navegadores antiguos */
+if (typeof createImageBitmap === 'undefined') {
+  window.createImageBitmap = async function(file){
+    return await new Promise((resolve, reject)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const cnv = document.createElement('canvas');
+        cnv.width = img.naturalWidth; cnv.height = img.naturalHeight;
+        const ctx = cnv.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        resolve(cnv);
+      };
+      img.onerror = reject;
+      try { img.src = URL.createObjectURL(file); } catch(err) { reject(err); }
+    });
+  };
+}
+
+/* Guardas finales: evitar doble submit por Enter en inputs */
+formEl?.addEventListener('keydown', (e)=>{
+  if(e.key==='Enter' && e.target.tagName==='INPUT'){
+    e.preventDefault();
+  }
+});
+</script>
+</body>
+</html>
