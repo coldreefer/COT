@@ -341,27 +341,30 @@ async function startResumableSession(file, parentId, token){
 async function uploadFileToDrive(file, parentId){
   const token = await getTokenGIS(true);
   const sessionURL = await startResumableSession(file, parentId, token);
-  const put = await fetch(sessionURL + '&supportsAllDrives=true&fields=id,parents', {
-    method:'PUT',
-    headers:{
-      'Authorization':'Bearer '+token,
-      'Content-Type': file.type || 'application/octet-stream',
-      'Content-Length': String(file.size)
+
+  const put = await fetch(sessionURL, {
+    method: 'PUT',
+    headers: {
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': file.type || 'application/octet-stream'
     },
     body: file
   });
-  if (!put.ok) throw new Error('Error upload: '+put.status+' '+(await put.text()));
-  const json = await put.json(); // => {id, parents?}
 
-  // ✅ Verificación: ¿quedó bajo el Shared Drive correcto?
-  if (parentId && (!json.parents || !json.parents.length)){
-    // En algunos casos Google no devuelve parents; opcionalmente consulta:
-    // await fetch(`https://www.googleapis.com/drive/v3/files/${json.id}?fields=parents&supportsAllDrives=true`, { headers:{ Authorization:'Bearer '+token }});
+  if (!put.ok) {
+    throw new Error('Error upload: ' + put.status + ' ' + (await put.text()));
   }
 
-  // si necesitas garantizar, puedes hacer un fallback (ver solución 2)
+  const txt = await put.text();
+  let json = {};
+  if (txt) { try { json = JSON.parse(txt); } catch(_){} }
+
+  if (!json.id) {
+  }
+
   return json.id;
 }
+
 
 
 /* ========== NEW: limitador de concurrencia simple ========== */
