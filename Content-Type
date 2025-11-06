@@ -342,7 +342,9 @@ async function startResumableSession(file, parentId, token){
 async function uploadFileToDrive(file, parentId){
   const token = await getTokenGIS(true);
   const sessionURL = await startResumableSession(file, parentId, token);
-  const put = await fetch(sessionURL + '&supportsAllDrives=true&fields=id,parents', {
+
+  // ⚠️ Usar la URL de sesión EXACTA, sin anexar nada
+  const put = await fetch(sessionURL, {
     method:'PUT',
     headers:{
       'Authorization':'Bearer ' + token,
@@ -351,11 +353,19 @@ async function uploadFileToDrive(file, parentId){
     },
     body: file
   });
-  if (!put.ok) throw new Error('Error upload: ' + put.status + ' ' + (await put.text()));
-  const json = await put.json();
 
-  if (parentId && (!json.parents || !json.parents.length)) {
-    // (opcional) aquí podrías verificar/mover con el mismo token si lo necesitas
+  if (!put.ok) {
+    throw new Error('Error upload: ' + put.status + ' ' + (await put.text()));
+  }
+
+  // Si en el POST de la sesión pusiste ?fields=id,parents,
+  // aquí Drive devuelve ese JSON.
+  let json = {};
+  const txt = await put.text();
+  if (txt) { try { json = JSON.parse(txt); } catch(_){} }
+
+  if (!json.id) {
+
   }
 
   return json.id; // fileId
