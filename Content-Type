@@ -40,42 +40,57 @@
     column-gap: 6px;
     row-gap: 4px;
   }
+
+  /* Etiquetas más pequeñas y ajustadas */
   #containers .g3 .row > label {
     font-size: 11px;
     font-weight: 600;
     line-height: 1.1;
     margin-bottom: 0;
   }
+
+  /* Inputs/selects más compactos */
   #containers .g3 .row input,
   #containers .g3 .row select {
     min-height: 30px;
     font-size: 13px;
     padding: 4px 6px;
   }
+
+  /* Específico: N° CONTENEDOR */
   #containers input[name$="_container"] {
     font-size: 13px;
     min-height: 30px;
     letter-spacing: 0.04ch;
   }
+
+  /* Booking/Naviera */
   #containers input[name$="_booking"],
   #containers select[name$="_naviera_sel"] {
     font-size: 13px;
     min-height: 30px;
   }
+
+  /* Campo “Otro” cuando Naviera = Otra */
   #containers input[name$="_naviera_otra"] {
     font-size: 13px;
     min-height: 30px;
     padding: 4px 6px;
   }
+
+  /* Placeholders */
   #containers input::placeholder {
     font-size: 12px;
     color: var(--muted);
   }
+
+  /* Flex Naviera + Otro */
   #containers .row > div[style*="display:flex"] {
     gap: 4px;
     align-items: center;
   }
 
+  /* Móvil */
   @media (max-width: 600px) {
     #containers .g3 { grid-template-columns: 1fr; }
     #containers [name$="_naviera_otra"] { width: 100%; }
@@ -100,7 +115,10 @@
   th,td{border:1px solid var(--line);padding:1px 3px;text-align:center}
   th{background:#f3f6fb}
 
+  /* Etiquetas izquierda más delgadas */
   .table-wrap tbody th{font-weight:400 !important;text-align:left;padding:1px 8px;font-size:12px;line-height:1.15}
+
+  /* Cabecera: input de hora más grande (fijo a 2 controles) */
   .colhdr{position:relative;padding-top:2px;padding-bottom:2px}
   .hdr-time{display:block;margin-top:2px;font-size:14px;min-height:36px}
 
@@ -117,6 +135,7 @@
   .thumb .x{position:absolute;top:5px;right:5px;background:transparent;border:1px solid var(--danger);color:var(--danger);
     width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;cursor:pointer}
 
+  /* Card para archivos no-imagen */
   .filebox{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;background:#fff;padding:6px}
   .filebox .badge{min-width:28px;height:28px;border-radius:6px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px}
   .filebox .name{font-size:12px;color:var(--ink)}
@@ -131,8 +150,16 @@
   .sheet .row-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
 
   .rowlbl{font-weight:400}
-  .firstcol{ width:32%; text-align:left; padding-left:10px; white-space:nowrap; }
 
+  /* Primera columna semántica */
+  .firstcol{
+    width:32%;
+    text-align:left;
+    padding-left:10px;
+    white-space:nowrap;
+  }
+
+  /* === Mejoras móviles (≤600px) === */
   @media (max-width: 600px){
     .table-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
     .table-wrap table{ min-width: 560px; }
@@ -148,6 +175,7 @@
     #containers .row > div[style*="display:flex"]{ flex-wrap: wrap; }
     #containers [name$="_naviera_otra"]{ width: 100%; margin-top: 4px; }
   }
+  /* === FIN móvil === */
 </style>
 </head>
 <body>
@@ -215,16 +243,17 @@
 <div id="overlay" class="overlay"></div>
 <div id="mSheet" class="sheet"></div>
 
+<!-- Google Identity Services -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <script>
 /* ==========
    Utilidades
 ========== */
-const $ = s=>document.querySelector(s);
-const $$ = s=>Array.from(document.querySelectorAll(s));
+const $ = (s)=>document.querySelector(s);
+const $$ = (s)=>Array.from(document.querySelectorAll(s));
 
-/* ========== NEW: CONFIG OAuth + carpeta base Drive ========== */
+/* ========== CONFIG OAuth + carpeta base Drive ========== */
 const GIS_CONFIG = {
   CLIENT_ID: '212179869111-1g9f7ga5be885t5qf5bcsouk23ud19cd.apps.googleusercontent.com',
   SCOPES: 'https://www.googleapis.com/auth/drive.file'
@@ -235,14 +264,15 @@ let FOLDER_BASE_ID = '1daPx7kqS6hEtwornYcBGPoGHaLFSDMGw';
    Estado
 ========== */
 let uid = 0;
-const photoStores = new Map();
-let plantaDoc = null;
+const photoStores = new Map();   // id -> [{name,file,size,mimeType,isImg}]
+let plantaDoc = null;            // {name,file,size,mimeType,isImg} | null
 
-/* ========== NEW: AUTH (GIS) ========== */
+/* ========== AUTH (GIS) ========== */
 let _gisToken = null;
 let _gisTokenExp = 0;
 let _gisClient = null;
-let _gisPendingResolve = null, _gisPendingReject = null;
+let _gisPendingResolve = null;
+let _gisPendingReject  = null;
 
 function initGIS() {
   if (_gisClient) return;
@@ -255,10 +285,12 @@ function initGIS() {
         _gisToken = resp.access_token;
         _gisTokenExp = Date.now() + ((resp.expires_in || 3600) * 1000) - 60000;
         if (_gisPendingResolve) _gisPendingResolve(_gisToken);
-        _gisPendingResolve = _gisPendingReject = null;
+        _gisPendingResolve = null;
+        _gisPendingReject = null;
       } else {
         if (_gisPendingReject) _gisPendingReject(new Error('No se obtuvo token GIS'));
-        _gisPendingResolve = _gisPendingReject = null;
+        _gisPendingResolve = null;
+        _gisPendingReject = null;
       }
     }
   });
@@ -280,7 +312,6 @@ function getTokenGIS(interactive = true){
 async function startResumableSession(file, parentId, token){
   const meta = { name: file.name };
   if (parentId) meta.parents = [parentId];
-
   const r = await fetch(
     'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true&fields=id,parents',
     {
@@ -304,12 +335,13 @@ async function uploadFileToDrive(file, parentId){
   const token = await getTokenGIS(true);
   const sessionURL = await startResumableSession(file, parentId, token);
 
-  // No agregar query params aquí; se usan los de la sesión.
+  // IMPORTANTE: no agregues query params a la URL de sesión.
   const put = await fetch(sessionURL, {
     method: 'PUT',
     headers: {
       'Authorization': 'Bearer ' + token,
       'Content-Type': file.type || 'application/octet-stream'
+      // No setear 'Content-Length' manual en navegador.
     },
     body: file
   });
@@ -318,46 +350,47 @@ async function uploadFileToDrive(file, parentId){
     throw new Error('Error upload: ' + put.status + ' ' + (await put.text()));
   }
 
-  // Drive puede devolver JSON o cuerpo vacío; soportar ambos.
+  // Puede devolver JSON o cuerpo vacío. Intentamos parsear por si acaso.
   const txt = await put.text();
   let json = {};
   if (txt) { try { json = JSON.parse(txt); } catch(_) {} }
 
   if (!json.id) {
-    throw new Error('Subida OK pero sin id devuelto por Drive.');
+    // Si el endpoint no devolvió JSON, podrías hacer un GET después si lo necesitas.
+    throw new Error('Subida correcta pero sin id devuelto por Drive.');
   }
   return json.id;
 }
 
-/* =========================
-   Validaciones y envío GAS (solo cabecera)
-========================= */
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzY7MeT5bBUDVCbl7UAi1_tkWkKxydFteBXhHDvoBbxk3stVBFWINtitmpxURkGFHLX/exec';
-
-async function postJSONToGas(payload){
-  const r = await fetch(GAS_URL, {
-    method:'POST',
-    headers:{ 'Content-Type':'text/plain;charset=utf-8' },
-    body: JSON.stringify(payload),
-    redirect:'follow',
-    cache:'no-store'
-  });
-  const txt = await r.text();
-  try { 
-    return JSON.parse(txt); 
-  } catch { 
-    return { ok:false, raw: txt }; 
-  }
+/* ========== Limitador concurrencia ========== */
+function createLimiter(max=3){
+  let active=0, queue=[];
+  const next=()=>{
+    if(active>=max || queue.length===0) return;
+    active++;
+    const {fn,resolve,reject}=queue.shift();
+    fn().then((v)=>{
+      active--; resolve(v); next();
+    }).catch(err=>{
+      active--; reject(err); next();
+    });
+  };
+  return function run(fn){
+    return new Promise((resolve,reject)=>{
+      queue.push({fn,resolve,reject}); next();
+    });
+  };
 }
-<!-- (CONTINÚA) -->
+const runLimited = createLimiter(3);
+
 /* ==========
-   Helpers genéricos
+   Helpers
 ========== */
-function truncate(s,n){ return s && s.length>n ? s.slice(0,n-1)+'…' : (s||''); }
-function safeName(s){ return (s||'FILE').replace(/[^\w.\-]+/g,'_'); }
+function truncate(s,n){ return s.length>n ? s.slice(0,n-1)+'…' : s; }
+function safeName(s){ return (s||'FILE').replace(/[^\w\.\-]+/g,'_'); }
 function formatBytes(b){
-  if (b==null) return '';
-  const u=['B','KB','MB','GB']; let i=0, v=Number(b)||0;
+  if (!b && b!==0) return '';
+  const u=['B','KB','MB','GB']; let i=0; let v=b;
   while(v>=1024 && i<u.length-1){ v/=1024; i++; }
   return `${v.toFixed(v<10&&i>0?1:0)} ${u[i]}`;
 }
@@ -365,7 +398,8 @@ function isImageLike(f){
   if(!f) return false;
   if(f.type) return f.type.startsWith('image/');
   const m = (f.name||'').toLowerCase().match(/\.(\w+)$/);
-  return !!(m && ['jpg','jpeg','png','gif','webp','bmp','heic','heif','tif','tiff'].includes(m[1]));
+  if(!m) return false;
+  return ['jpg','jpeg','png','gif','webp','bmp','heic','heif','tif','tiff'].includes(m[1]);
 }
 function fileBadgeExt(name){
   const m = (name||'').toLowerCase().match(/\.(\w+)$/);
@@ -373,27 +407,48 @@ function fileBadgeExt(name){
 }
 
 /* ==========
-   Compresión de imágenes
+   Compresión de imagen
 ========== */
 const MAX_W=760, MAX_H=600, MAX_SIZE=150*1024;
 const MAX_W_DOC=1200, MAX_H_DOC=900, MAX_SIZE_DOC=400*1024;
 
-async function compressImage(file, {w=MAX_W, h=MAX_H, max=MAX_SIZE}={}) {
+async function compressImage(file, {w=MAX_W, h=MAX_H, max=MAX_SIZE}={}){
   if(!file || !file.type || !file.type.startsWith('image/')) return file;
   const bitmap = await createImageBitmap(file);
-  let W=bitmap.width,H=bitmap.height;
-  const ratio=Math.min(w/W, h/H, 1); W=Math.round(W*ratio); H=Math.round(H*ratio);
+  let W=bitmap.width, H=bitmap.height;
+  const ratio=Math.min(w/W, h/H, 1);
+  W=Math.round(W*ratio); H=Math.round(H*ratio);
   const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
   const ctx=canvas.getContext('2d'); ctx.drawImage(bitmap,0,0,W,H);
-  let q=0.9; let blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',q));
-  while(blob && blob.size>max && q>0.6){ q-=0.05; blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',q)); }
+  let q=0.9;
+  let blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',q));
+  while(blob && blob.size>max && q>0.6){
+    q-=0.05;
+    blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',q));
+  }
   if(!blob) return file;
   return new File([blob], file.name.replace(/\.[^.]+$/i,'.jpg'), {type:'image/jpeg'});
 }
 
 /* ==========
-   CONTENEDORES (UI + datos)
+   DataURL helpers (opcional)
 ========== */
+function fileToDataURL(file){
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = e => resolve(e.target.result);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+async function fileToDataURLSmart(file, compressCfg){
+  const f = (file && isImageLike(file)) ? await compressImage(file, compressCfg||{}) : file;
+  return fileToDataURL(f);
+}
+
+/* =========================
+   Sección CONTENEDORES
+========================= */
 function enforceFirstNotDeletable(){
   const cards = $$('#containers .container-card');
   cards.forEach((c,i)=>{
@@ -408,7 +463,7 @@ function updateAddButtonState(){
   else { btn.disabled = false; btn.textContent = '+ Añadir contenedor'; }
 }
 
-/* Cabecera fija de 2 controles */
+/* Cabecera de tabla 2 controles */
 function buildTableFixed2(id){
   const colsHdr = ['1° control','Control final'];
   const filas = [
@@ -464,11 +519,14 @@ function readTableValues(card){
   return vals;
 }
 
-/* Render miniaturas/archivos */
+/* Thumbs/archivos por unidad */
 function renderThumbs(id, host){
   const store = photoStores.get(Number(id)) || [];
   host.innerHTML='';
-  if(!store.length){ host.innerHTML='<div class="muted">Sin archivos.</div>'; return; }
+  if(!store.length){
+    host.innerHTML='<div class="muted">Sin archivos.</div>';
+    return;
+  }
   store.forEach((p,i)=>{
     const ext = fileBadgeExt(p.name);
     if(p.isImg){
@@ -482,7 +540,8 @@ function renderThumbs(id, host){
       host.appendChild(card);
       card.querySelector('.x').addEventListener('click', ()=>{
         URL.revokeObjectURL(url);
-        store.splice(i,1); renderThumbs(id, host);
+        store.splice(i,1);
+        renderThumbs(id, host);
       });
     }else{
       const wrap = document.createElement('div');
@@ -494,7 +553,8 @@ function renderThumbs(id, host){
         <button type="button" class="x" data-x="${i}">×</button>`;
       host.appendChild(wrap);
       wrap.querySelector('.x').addEventListener('click', ()=>{
-        store.splice(i,1); renderThumbs(id, host);
+        store.splice(i,1);
+        renderThumbs(id, host);
       });
     }
   });
@@ -502,8 +562,10 @@ function renderThumbs(id, host){
 
 /* ADD CONTAINER */
 function addContainer(){
-  if($$('#containers .container-card').length >= 3){ updateAddButtonState(); return; }
-
+  if($$('#containers .container-card').length >= 3){
+    updateAddButtonState();
+    return;
+  }
   uid++;
   const id = uid;
   photoStores.set(id, []);
@@ -559,7 +621,7 @@ function addContainer(){
     </div>
   `;
 
-  /* Delegación de clicks dentro de cada card */
+  /* Delegación de clicks */
   card.addEventListener('click', (ev)=>{
     const t = ev.target;
 
@@ -568,17 +630,23 @@ function addContainer(){
         mobileConfirm('¿Eliminar este contenedor?', ()=>{
           const idNum = Number(card.dataset.uid);
           photoStores.delete(idNum);
-          card.remove(); reindexTitles(); enforceFirstNotDeletable(); updateAddButtonState();
+          card.remove();
+          reindexTitles();
+          enforceFirstNotDeletable();
+          updateAddButtonState();
         });
       }
     }
 
-    if(t.matches('[data-pickfotos]')){ card.querySelector('#pickFotos_'+id).click(); }
+    if(t.matches('[data-pickfotos]')){
+      card.querySelector('#pickFotos_'+id).click();
+    }
     if(t.matches('[data-cleanfotos]')){
       const store = photoStores.get(id)||[];
       if(!store.length) return;
       mobileConfirm('¿Borrar todos los archivos de esta unidad?', ()=>{
-        store.length=0; renderThumbs(id, card.querySelector('#thumbs_'+id));
+        store.length=0;
+        renderThumbs(id, card.querySelector('#thumbs_'+id));
       });
     }
   });
@@ -594,7 +662,7 @@ function addContainer(){
     }
   });
 
-  /* Carga de archivos/fotos (múltiples) */
+  /* Carga de archivos/fotos */
   card.querySelector('#pickFotos_'+id).addEventListener('change', async (e)=>{
     const files = Array.from(e.target.files||[]);
     if(!files.length) return;
@@ -603,7 +671,9 @@ function addContainer(){
     for(const f of files){
       let fOut = f;
       const isImg = isImageLike(f);
-      if(isImg){ fOut = await compressImage(f); }
+      if(isImg){
+        fOut = await compressImage(f);
+      }
       store.push({
         name: safeName(f.name).replace(/\s+/g,'_'),
         file: fOut,
@@ -618,23 +688,24 @@ function addContainer(){
   });
 
   $('#containers').appendChild(card);
-  reindexTitles(); enforceFirstNotDeletable(); updateAddButtonState();
+  reindexTitles();
+  enforceFirstNotDeletable();
+  updateAddButtonState();
 }
 
-/* Reindexar títulos */
 function reindexTitles(){
   $$('#containers .container-card').forEach((c,idx)=>{
     c.querySelector('[data-title]').textContent = `Contenedor #${idx+1}`;
   });
 }
 
-/* INIT */
+/* INIT contenedores */
 addContainer();
 document.getElementById('addContainerBtn').addEventListener('click', addContainer);
 
-/* ==========
-   UI hoja de confirmación (overlay + sheet)
-========== */
+/* =========================
+   UI: confirmación móvil
+========================= */
 function mobileConfirm(message, onOK){
   const ovl = document.getElementById('overlay');
   const sh  = document.getElementById('mSheet');
@@ -646,15 +717,18 @@ function mobileConfirm(message, onOK){
       <button type="button" class="btn danger" id="mOk">Aceptar</button>
     </div>`;
   ovl.classList.add('show'); sh.classList.add('show');
-  const close = ()=>{ ovl.classList.remove('show'); sh.classList.remove('show'); };
+  const close = ()=>{
+    ovl.classList.remove('show');
+    sh.classList.remove('show');
+  };
   document.getElementById('mCancel').onclick = close;
   document.getElementById('mOk').onclick = ()=>{ close(); onOK && onOK(); };
   ovl.onclick = close;
 }
 
-/* ==========
+/* =========================
    Documento de planta (1 archivo)
-========== */
+========================= */
 const pickDocPlanta = $('#pickDocPlanta');
 const thumbsDocPlanta = $('#thumbsDocPlanta');
 
@@ -665,12 +739,15 @@ $('#btnDocPlantaClear').addEventListener('click', ()=>{
     plantaDoc = null; renderPlantaDoc();
   });
 });
+
 pickDocPlanta.addEventListener('change', async ()=>{
   const f = (pickDocPlanta.files||[])[0];
   if(!f) return;
   let fOut = f;
   const isImg = isImageLike(f);
-  if(isImg){ fOut = await compressImage(f, {w:MAX_W_DOC, h:MAX_H_DOC, max:MAX_SIZE_DOC}); }
+  if(isImg){
+    fOut = await compressImage(f, {w:MAX_W_DOC, h:MAX_H_DOC, max:MAX_SIZE_DOC});
+  }
   plantaDoc = {
     name: safeName(f.name),
     file: fOut,
@@ -681,6 +758,7 @@ pickDocPlanta.addEventListener('change', async ()=>{
   renderPlantaDoc();
   pickDocPlanta.value = '';
 });
+
 function renderPlantaDoc(){
   thumbsDocPlanta.innerHTML = '';
   if(!plantaDoc){
@@ -715,9 +793,9 @@ function renderPlantaDoc(){
   }
 }
 
-/* ==========
+/* =========================
    Validaciones
-========== */
+========================= */
 function validForm(){
   const need = ['folio','fecha_servicio','hora_llegada','hora_inicio_cal','hora_termino','tecnico','planta','responsable_packing'];
   for(const n of need){
@@ -753,9 +831,11 @@ function validForm(){
   return {ok:true};
 }
 
-/* ==========
-   Construir payload JSON (fileIds)
-========== */
+/* =========================
+   GAS endpoint
+========================= */
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzY7MeT5bBUDVCbl7UAi1_tkWkKxydFteBXhHDvoBbxk3stVBFWINtitmpxURkGFHLX/exec';
+
 function buildPayloadJSON(uploadMap, plantaDocId){
   const gen = {};
   ['folio','fecha_servicio','hora_llegada','hora_inicio_cal','hora_termino','tecnico','planta','responsable_packing','viaje','comentarios']
@@ -786,9 +866,9 @@ function buildPayloadJSON(uploadMap, plantaDocId){
   };
 }
 
-/* ==========
+/* =========================
    UI de estado
-========== */
+========================= */
 function showLoading() {
   $('#loadingIcon').style.display = 'inline';
   $('#submitBtn').disabled = true;
@@ -809,9 +889,20 @@ function showError(msg){
   $('#msg').textContent = 'Error: ' + (msg || 'desconocido');
 }
 
-/* ==========
-   Submit: Direct-to-Drive + JSON a GAS
-========== */
+/* === Envío JSON al GAS (sin blobs) === */
+async function postJSONToGas(payload){
+  const r = await fetch(GAS_URL, {
+    method:'POST',
+    headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload),
+    redirect:'follow',
+    cache:'no-store'
+  });
+  const txt = await r.text();
+  try { return JSON.parse(txt); } catch { return { ok:false, raw: txt }; }
+}
+
+/* --- SUBMIT: Direct-to-Drive + JSON --- */
 const formEl = document.getElementById('cotForm');
 if (formEl){
   formEl.addEventListener('submit', async (e)=>{
@@ -827,37 +918,40 @@ if (formEl){
 
     showLoading();
     try{
+      // 1) Token GIS
       await getTokenGIS(true);
 
       // 2) Subir Documento de planta
       let plantaDocId = '';
       if (plantaDoc && plantaDoc.file){
-        plantaDocId = await uploadFileToDrive(plantaDoc.file, FOLDER_BASE_ID);
+        plantaDocId = await runLimited(()=>uploadFileToDrive(plantaDoc.file, FOLDER_BASE_ID));
       }
 
-      // 3) Subir archivos por contenedor con concurrencia simple
+      // 3) Subir fotos por contenedor (concurrencia limitada)
       const cards = Array.from(document.querySelectorAll('#containers .container-card'));
-      const uploadMap = new Map(); // idNum -> [fileIds]
+      const uploadMap = new Map();
 
       for (const card of cards){
         const idNum = Number(card.dataset.uid);
         const store = photoStores.get(idNum) || [];
         const ids = [];
-        for (const p of store){
+        await Promise.all(store.map(p=> runLimited(async ()=>{
           const fileId = await uploadFileToDrive(p.file, FOLDER_BASE_ID);
           ids.push(fileId);
-        }
+        })));
         uploadMap.set(idNum, ids);
       }
 
-      // 4) Enviar JSON a GAS
+      // 4) Armar JSON y enviar a GAS
       const payload = buildPayloadJSON(uploadMap, plantaDocId);
       const res = await postJSONToGas(payload);
       console.log('Direct-to-Drive OK:', res);
       showSuccess('Directo a Drive + JSON');
 
-      // (opcional) reset
-      // formEl.reset(); photoStores.clear();
+      // Opcional: limpiar
+      // formEl.reset();
+      // photoStores.clear();
+
     }catch(err){
       console.error('Error envío COT', err);
       showError(err?.message || 'Error de envío');
@@ -865,7 +959,7 @@ if (formEl){
   }, true);
 }
 
-/* Botón de prueba */
+/* Botón prueba validaciones */
 document.getElementById('testBtn')?.addEventListener('click', ()=>{
   const v = validForm();
   $('#msg').textContent = v.ok ? 'Validaciones OK.' : v.msg;
@@ -886,7 +980,7 @@ document.addEventListener('input', (e)=>{
   }
 });
 
-/* ESC cierra overlay */
+/* Cerrar overlay con ESC */
 document.addEventListener('keydown', (e)=>{
   if(e.key==='Escape'){
     document.getElementById('overlay')?.classList.remove('show');
@@ -894,7 +988,7 @@ document.addEventListener('keydown', (e)=>{
   }
 });
 
-/* Polyfill para createImageBitmap */
+/* Polyfill simple para createImageBitmap */
 if (typeof createImageBitmap === 'undefined') {
   window.createImageBitmap = async function(file){
     return await new Promise((resolve, reject)=>{
@@ -912,15 +1006,14 @@ if (typeof createImageBitmap === 'undefined') {
   };
 }
 
-/* Evitar Enter=>submit en inputs */
+/* Evitar submit por Enter en inputs */
 formEl?.addEventListener('keydown', (e)=>{
   if(e.key==='Enter' && e.target.tagName==='INPUT'){
     e.preventDefault();
   }
 });
-/* --- Fin Parte 2/3 --- */
-/* --- Parte 3/3 --- */
-/* Inicializa GIS cuando cargue la página (no rompe si ya está inicializado) */
+
+/* Inicializa GIS cuando cargue la página */
 window.addEventListener('load', ()=>{ try{ initGIS(); }catch(_){} });
 </script>
 </body>
