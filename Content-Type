@@ -319,20 +319,25 @@ function getTokenGIS(interactive = true){
   });
 }
 
+// ========== Helpers Drive — subida resumible ==========
 async function startResumableSession(file, parentId, token){
   const meta = { name: file.name };
   if (parentId) meta.parents = [parentId];
-  const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true&fields=id,parents', {
-    method:'POST',
-    headers:{
-      'Authorization':'Bearer '+token,
-      'Content-Type':'application/json; charset=UTF-8',
-      'X-Upload-Content-Type': file.type || 'application/octet-stream',
-      'X-Upload-Content-Length': file.size
-    },
-    body: JSON.stringify(meta)
-  });
-  if (!r.ok) throw new Error('Error init resumable: '+r.status+' '+(await r.text()));
+
+  const r = await fetch(
+    'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true&fields=id,parents',
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json; charset=UTF-8',
+        'X-Upload-Content-Type': file.type || 'application/octet-stream',
+        'X-Upload-Content-Length': file.size
+      },
+      body: JSON.stringify(meta)
+    }
+  );
+  if (!r.ok) throw new Error('Error init resumable: ' + r.status + ' ' + (await r.text()));
   const loc = r.headers.get('Location');
   if (!loc) throw new Error('Sin Location de sesión resumible');
   return loc;
@@ -342,11 +347,13 @@ async function uploadFileToDrive(file, parentId){
   const token = await getTokenGIS(true);
   const sessionURL = await startResumableSession(file, parentId, token);
 
+  // IMPORTANTE: no agregues query params aquí; se usan los de la sesión.
   const put = await fetch(sessionURL, {
     method: 'PUT',
     headers: {
       'Authorization': 'Bearer ' + token,
       'Content-Type': file.type || 'application/octet-stream'
+      // No pongas 'Content-Length' en el navegador.
     },
     body: file
   });
@@ -355,14 +362,17 @@ async function uploadFileToDrive(file, parentId){
     throw new Error('Error upload: ' + put.status + ' ' + (await put.text()));
   }
 
+  // A veces Drive devuelve JSON; otras, cuerpo vacío. Soportemos ambos.
   const txt = await put.text();
   let json = {};
-  if (txt) { try { json = JSON.parse(txt); } catch(_){} }
+  if (txt) { try { json = JSON.parse(txt); } catch(_) {} }
 
   if (!json.id) {
+    // Si no vino JSON, consultarlo sería otro paso; para este flujo esperamos id.
+    throw new Error('Subida OK pero sin id devuelto por Drive.');
   }
 
-  return json.id;
+  return json.id; // fileId
 }
 
 
