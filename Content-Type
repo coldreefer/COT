@@ -36,72 +36,50 @@
 
   /* === Ajuste tamaño y disposición de contenedores === */
   #containers .g3 {
-    grid-template-columns: 1.1fr 1fr 1fr; /* Ajusta la proporción de las columnas */
+    grid-template-columns: 1.1fr 1fr 1fr;
     column-gap: 6px;
     row-gap: 4px;
   }
-
-  /* Etiquetas más pequeñas y ajustadas */
   #containers .g3 .row > label {
-    font-size: 11px; /* Reduce tamaño de texto */
-    font-weight: 600; /* Acentúa la etiqueta */
+    font-size: 11px;
+    font-weight: 600;
     line-height: 1.1;
     margin-bottom: 0;
   }
-
-  /* Campos de entrada y selección con fuentes más pequeñas */
   #containers .g3 .row input,
   #containers .g3 .row select {
     min-height: 30px;
     font-size: 13px;
     padding: 4px 6px;
   }
-
-  /* Ajuste específico para el N° CONTENEDOR */
   #containers input[name$="_container"] {
     font-size: 13px;
     min-height: 30px;
-    letter-spacing: 0.04ch; /* Para 11 caracteres */
+    letter-spacing: 0.04ch;
   }
-
-  /* Ajuste para N° BOOKING y Naviera */
   #containers input[name$="_booking"],
   #containers select[name$="_naviera_sel"] {
     font-size: 13px;
     min-height: 30px;
   }
-
-  /* Campo "Otro" que aparece cuando seleccionas "Otra" en Naviera */
   #containers input[name$="_naviera_otra"] {
     font-size: 13px;
     min-height: 30px;
     padding: 4px 6px;
   }
-
-  /* Ajuste de placeholders (texto de ejemplo) */
   #containers input::placeholder {
     font-size: 12px;
     color: var(--muted);
   }
-
-  /* Flexbox para Naviera + Otro (alineación en una fila) */
   #containers .row > div[style*="display:flex"] {
     gap: 4px;
     align-items: center;
   }
 
-  /* Estilo para dispositivos móviles (≤600px) */
   @media (max-width: 600px) {
-    #containers .g3 {
-      grid-template-columns: 1fr; /* Apilar todo en una columna */
-    }
-
-    #containers [name$="_naviera_otra"] {
-      width: 100%; /* Ocupa todo el ancho disponible */
-    }
+    #containers .g3 { grid-template-columns: 1fr; }
+    #containers [name$="_naviera_otra"] { width: 100%; }
   }
-
-  /* ================================================ */
 
   .row{display:grid;grid-template-columns:120px 1fr;gap:2px;align-items:center}
   @media (max-width:900px){ .g3{grid-template-columns:1fr} }
@@ -122,10 +100,7 @@
   th,td{border:1px solid var(--line);padding:1px 3px;text-align:center}
   th{background:#f3f6fb}
 
-  /* Etiquetas izquierda más delgadas */
   .table-wrap tbody th{font-weight:400 !important;text-align:left;padding:1px 8px;font-size:12px;line-height:1.15}
-
-  /* Cabecera: input de hora más grande (fijo a 2 controles) */
   .colhdr{position:relative;padding-top:2px;padding-bottom:2px}
   .hdr-time{display:block;margin-top:2px;font-size:14px;min-height:36px}
 
@@ -142,7 +117,6 @@
   .thumb .x{position:absolute;top:5px;right:5px;background:transparent;border:1px solid var(--danger);color:var(--danger);
     width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;cursor:pointer}
 
-  /* Card para archivos no-imagen */
   .filebox{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;background:#fff;padding:6px}
   .filebox .badge{min-width:28px;height:28px;border-radius:6px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px}
   .filebox .name{font-size:12px;color:var(--ink)}
@@ -157,36 +131,23 @@
   .sheet .row-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
 
   .rowlbl{font-weight:400}
+  .firstcol{ width:32%; text-align:left; padding-left:10px; white-space:nowrap; }
 
-  /* Primera columna semántica */
-  .firstcol{
-    width:32%;
-    text-align:left;
-    padding-left:10px;
-    white-space:nowrap;
-  }
-
-  /* === Mejoras específicas para móvil (≤600px) === */
   @media (max-width: 600px){
     .table-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
-    .table-wrap table{ min-width: 560px; } /* 2 controles sin aplaste */
-
+    .table-wrap table{ min-width: 560px; }
     .firstcol{ width:28%; font-size:12px; }
     .table-wrap tbody th{ font-size:11px; padding:2px 6px; white-space:nowrap; }
-
     .table-wrap td input{ min-height:40px; font-size:16px; }
     .hdr-time{ font-size:16px; min-height:40px; }
-
-    input, select, textarea{ font-size:16px; } /* evita zoom iOS */
+    input, select, textarea{ font-size:16px; }
     .row{ grid-template-columns:1fr; }
     .g3, .g2{ grid-template-columns:1fr; }
-
     #containers .row{ grid-template-columns: 1fr !important; gap: 4px; }
     #containers label{ font-size: 12px; margin-bottom: 2px; }
     #containers .row > div[style*="display:flex"]{ flex-wrap: wrap; }
     #containers [name$="_naviera_otra"]{ width: 100%; margin-top: 4px; }
   }
-  /* === FIN móvil === */
 </style>
 </head>
 <body>
@@ -231,7 +192,6 @@
       <div class="sectitle">Documento de Planta (Hoja firmada) — General</div>
       <div class="uploader">
         <div class="actions">
-          <!-- Cualquier tipo de archivo, SOLO 1 -->
           <input id="pickDocPlanta" type="file" style="display:none" accept="*/*">
           <button type="button" class="btn" id="btnDocPlanta">Añadir documento</button>
           <button type="button" class="btn danger" id="btnDocPlantaClear">Borrar</button>
@@ -255,7 +215,6 @@
 <div id="overlay" class="overlay"></div>
 <div id="mSheet" class="sheet"></div>
 
-<!-- === NEW: Google Identity Services loader (necesario para token OAuth) -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <script>
@@ -267,19 +226,17 @@ const $$ = s=>Array.from(document.querySelectorAll(s));
 
 /* ========== NEW: CONFIG OAuth + carpeta base Drive ========== */
 const GIS_CONFIG = {
-  CLIENT_ID: '212179869111-1g9f7ga5be885t5qf5bcsouk23ud19cd.apps.googleusercontent.com', // <-- PONER TU CLIENT_ID
+  CLIENT_ID: '212179869111-1g9f7ga5be885t5qf5bcsouk23ud19cd.apps.googleusercontent.com',
   SCOPES: 'https://www.googleapis.com/auth/drive.file'
 };
-// Si quieres que todo nazca en una carpeta específica, pon aquí su ID.
-// Si lo dejas vacío, nacerán en "Mi unidad" del usuario.
-let FOLDER_BASE_ID = '1daPx7kqS6hEtwornYcBGPoGHaLFSDMGw'; // <-- opcional: '1AbCDEF...'
+let FOLDER_BASE_ID = '1daPx7kqS6hEtwornYcBGPoGHaLFSDMGw';
 
 /* ==========
    Estado
 ========== */
 let uid = 0;
-const photoStores = new Map();   // id -> [{name,file,size,mimeType,isImg}]
-let plantaDoc = null;            // {name,file,size,mimeType,isImg} | null
+const photoStores = new Map();
+let plantaDoc = null;
 
 /* ========== NEW: AUTH (GIS) ========== */
 let _gisToken = null;
@@ -319,7 +276,7 @@ function getTokenGIS(interactive = true){
   });
 }
 
-// ========== Helpers Drive — subida resumible ==========
+/* ========== Helpers Drive — subida resumible ========== */
 async function startResumableSession(file, parentId, token){
   const meta = { name: file.name };
   if (parentId) meta.parents = [parentId];
@@ -347,13 +304,12 @@ async function uploadFileToDrive(file, parentId){
   const token = await getTokenGIS(true);
   const sessionURL = await startResumableSession(file, parentId, token);
 
-  // IMPORTANTE: no agregues query params aquí; se usan los de la sesión.
+  // No agregar query params aquí; se usan los de la sesión.
   const put = await fetch(sessionURL, {
     method: 'PUT',
     headers: {
       'Authorization': 'Bearer ' + token,
       'Content-Type': file.type || 'application/octet-stream'
-      // No pongas 'Content-Length' en el navegador.
     },
     body: file
   });
@@ -362,37 +318,46 @@ async function uploadFileToDrive(file, parentId){
     throw new Error('Error upload: ' + put.status + ' ' + (await put.text()));
   }
 
-  // A veces Drive devuelve JSON; otras, cuerpo vacío. Soportemos ambos.
+  // Drive puede devolver JSON o cuerpo vacío; soportar ambos.
   const txt = await put.text();
   let json = {};
   if (txt) { try { json = JSON.parse(txt); } catch(_) {} }
 
   if (!json.id) {
-    // Si no vino JSON, consultarlo sería otro paso; para este flujo esperamos id.
     throw new Error('Subida OK pero sin id devuelto por Drive.');
   }
-
-  return json.id; // fileId
+  return json.id;
 }
 
+/* =========================
+   Validaciones y envío GAS (solo cabecera)
+========================= */
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzY7MeT5bBUDVCbl7UAi1_tkWkKxydFteBXhHDvoBbxk3stVBFWINtitmpxURkGFHLX/exec';
 
-
-/* ========== NEW: limitador de concurrencia simple ========== */
-function createLimiter(max=3){
-  let active=0, queue=[];
-  const next=()=>{ if(active>=max || queue.length===0) return; active++; const {fn,resolve,reject}=queue.shift(); fn().then((v)=>{active--; resolve(v); next();}).catch(err=>{active--; reject(err); next();}); };
-  return function run(fn){ return new Promise((resolve,reject)=>{ queue.push({fn,resolve,reject}); next(); }); };
+async function postJSONToGas(payload){
+  const r = await fetch(GAS_URL, {
+    method:'POST',
+    headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload),
+    redirect:'follow',
+    cache:'no-store'
+  });
+  const txt = await r.text();
+  try { 
+    return JSON.parse(txt); 
+  } catch { 
+    return { ok:false, raw: txt }; 
+  }
 }
-const runLimited = createLimiter(3); // 3 subidas en paralelo
-
+<!-- (CONTINÚA) -->
 /* ==========
-   Helpers
+   Helpers genéricos
 ========== */
-function truncate(s,n){ return s.length>n ? s.slice(0,n-1)+'…' : s; }
-function safeName(s){ return (s||'FILE').replace(/[^\w\.\-]+/g,'_'); }
+function truncate(s,n){ return s && s.length>n ? s.slice(0,n-1)+'…' : (s||''); }
+function safeName(s){ return (s||'FILE').replace(/[^\w.\-]+/g,'_'); }
 function formatBytes(b){
-  if (!b && b!==0) return '';
-  const u=['B','KB','MB','GB']; let i=0; let v=b;
+  if (b==null) return '';
+  const u=['B','KB','MB','GB']; let i=0, v=Number(b)||0;
   while(v>=1024 && i<u.length-1){ v/=1024; i++; }
   return `${v.toFixed(v<10&&i>0?1:0)} ${u[i]}`;
 }
@@ -400,8 +365,7 @@ function isImageLike(f){
   if(!f) return false;
   if(f.type) return f.type.startsWith('image/');
   const m = (f.name||'').toLowerCase().match(/\.(\w+)$/);
-  if(!m) return false;
-  return ['jpg','jpeg','png','gif','webp','bmp','heic','heif','tif','tiff'].includes(m[1]);
+  return !!(m && ['jpg','jpeg','png','gif','webp','bmp','heic','heif','tif','tiff'].includes(m[1]));
 }
 function fileBadgeExt(name){
   const m = (name||'').toLowerCase().match(/\.(\w+)$/);
@@ -409,12 +373,11 @@ function fileBadgeExt(name){
 }
 
 /* ==========
-   Límites de compresión (solo imágenes)
+   Compresión de imágenes
 ========== */
 const MAX_W=760, MAX_H=600, MAX_SIZE=150*1024;
 const MAX_W_DOC=1200, MAX_H_DOC=900, MAX_SIZE_DOC=400*1024;
 
-/* COMPRESIÓN DE IMAGEN (función única) */
 async function compressImage(file, {w=MAX_W, h=MAX_H, max=MAX_SIZE}={}) {
   if(!file || !file.type || !file.type.startsWith('image/')) return file;
   const bitmap = await createImageBitmap(file);
@@ -428,29 +391,9 @@ async function compressImage(file, {w=MAX_W, h=MAX_H, max=MAX_SIZE}={}) {
   return new File([blob], file.name.replace(/\.[^.]+$/i,'.jpg'), {type:'image/jpeg'});
 }
 
-/* Helpers para DataURL/base64 (se mantienen por si los quieres usar) */
-function fileToDataURL(file){
-  return new Promise((resolve,reject)=>{
-    const r = new FileReader();
-    r.onload = e => resolve(e.target.result);
-    r.onerror = reject;
-    r.readAsDataURL(file);
-  });
-}
-async function fileToDataURLSmart(file, compressCfg){
-  const f = (file && isImageLike(file))
-    ? await compressImage(file, compressCfg||{})
-    : file;
-  return fileToDataURL(f);
-}
-
-/* =========================
-   Sección CONTENEDORES
-   - Tabla 2 controles (1° y Control final)
-   - Fotos por unidad (acepta CUALQUIER archivo; si es imagen, preview)
-   - Datalog por unidad (1 archivo)
-========================= */
-
+/* ==========
+   CONTENEDORES (UI + datos)
+========== */
 function enforceFirstNotDeletable(){
   const cards = $$('#containers .container-card');
   cards.forEach((c,i)=>{
@@ -465,9 +408,9 @@ function updateAddButtonState(){
   else { btn.disabled = false; btn.textContent = '+ Añadir contenedor'; }
 }
 
-/* Cabecera de tabla 2 controles */
+/* Cabecera fija de 2 controles */
 function buildTableFixed2(id){
-  const colsHdr = ['1° control','Control final']; // fijos
+  const colsHdr = ['1° control','Control final'];
   const filas = [
     ['USDA 1 (°C)','usda1'],
     ['USDA 2 (°C)','usda2'],
@@ -498,7 +441,7 @@ function buildTableFixed2(id){
   return html;
 }
 
-/* Lecturas/restore */
+/* Lecturas */
 function readHeaderTimes(card){
   const arr=[];
   for(let i=0;i<2;i++){
@@ -521,7 +464,7 @@ function readTableValues(card){
   return vals;
 }
 
-/* Render miniaturas/archivos por unidad */
+/* Render miniaturas/archivos */
 function renderThumbs(id, host){
   const store = photoStores.get(Number(id)) || [];
   host.innerHTML='';
@@ -563,7 +506,7 @@ function addContainer(){
 
   uid++;
   const id = uid;
-  photoStores.set(id, []); 
+  photoStores.set(id, []);
 
   const card = document.createElement('div');
   card.className='container-card';
@@ -607,7 +550,6 @@ function addContainer(){
     <div class="uploader">
       <div class="sectitle" style="margin:6px 0 4px">Archivos/fotos de esta unidad</div>
       <div class="actions">
-        <!-- acepta CUALQUIER archivo; múltiples -->
         <input id="pickFotos_${id}" type="file" style="display:none" multiple accept="*/*">
         <button type="button" class="btn sm" data-pickfotos>Añadir archivo(s)</button>
         <button type="button" class="btn danger sm" data-cleanfotos>Borrar todos</button>
@@ -625,7 +567,7 @@ function addContainer(){
       if(card.parentElement){
         mobileConfirm('¿Eliminar este contenedor?', ()=>{
           const idNum = Number(card.dataset.uid);
-          photoStores.delete(idNum); 
+          photoStores.delete(idNum);
           card.remove(); reindexTitles(); enforceFirstNotDeletable(); updateAddButtonState();
         });
       }
@@ -652,19 +594,16 @@ function addContainer(){
     }
   });
 
-  /* Carga de archivos/fotos (múltiples, cualquier tipo) */
+  /* Carga de archivos/fotos (múltiples) */
   card.querySelector('#pickFotos_'+id).addEventListener('change', async (e)=>{
     const files = Array.from(e.target.files||[]);
     if(!files.length) return;
     const store = photoStores.get(id)||[];
 
-    // (se mantiene compresión imagen)
     for(const f of files){
       let fOut = f;
-      let isImg = isImageLike(f);
-      if(isImg){
-        fOut = await compressImage(f); // comprime imagen
-      }
+      const isImg = isImageLike(f);
+      if(isImg){ fOut = await compressImage(f); }
       store.push({
         name: safeName(f.name).replace(/\s+/g,'_'),
         file: fOut,
@@ -673,8 +612,8 @@ function addContainer(){
         isImg
       });
     }
-    photoStores.set(id, store); 
-    renderThumbs(id, card.querySelector('#thumbs_'+id)); 
+    photoStores.set(id, store);
+    renderThumbs(id, card.querySelector('#thumbs_'+id));
     e.target.value='';
   });
 
@@ -682,19 +621,20 @@ function addContainer(){
   reindexTitles(); enforceFirstNotDeletable(); updateAddButtonState();
 }
 
-function reindexTitles(){ 
-  $$('#containers .container-card').forEach((c,idx)=>{ 
-    c.querySelector('[data-title]').textContent = `Contenedor #${idx+1}`; 
-  }); 
+/* Reindexar títulos */
+function reindexTitles(){
+  $$('#containers .container-card').forEach((c,idx)=>{
+    c.querySelector('[data-title]').textContent = `Contenedor #${idx+1}`;
+  });
 }
 
-/* INIT contenedores */
+/* INIT */
 addContainer();
 document.getElementById('addContainerBtn').addEventListener('click', addContainer);
 
-/* =========================
-   UI hoja de confirmación (overlay + bottom sheet)
-========================= */
+/* ==========
+   UI hoja de confirmación (overlay + sheet)
+========== */
 function mobileConfirm(message, onOK){
   const ovl = document.getElementById('overlay');
   const sh  = document.getElementById('mSheet');
@@ -712,9 +652,9 @@ function mobileConfirm(message, onOK){
   ovl.onclick = close;
 }
 
-/* =========================
-   Documento de planta (SOLO 1 archivo, cualquier tipo)
-========================= */
+/* ==========
+   Documento de planta (1 archivo)
+========== */
 const pickDocPlanta = $('#pickDocPlanta');
 const thumbsDocPlanta = $('#thumbsDocPlanta');
 
@@ -725,15 +665,12 @@ $('#btnDocPlantaClear').addEventListener('click', ()=>{
     plantaDoc = null; renderPlantaDoc();
   });
 });
-
 pickDocPlanta.addEventListener('change', async ()=>{
   const f = (pickDocPlanta.files||[])[0];
   if(!f) return;
   let fOut = f;
   const isImg = isImageLike(f);
-  if(isImg){
-    fOut = await compressImage(f, {w:MAX_W_DOC, h:MAX_H_DOC, max:MAX_SIZE_DOC});
-  }
+  if(isImg){ fOut = await compressImage(f, {w:MAX_W_DOC, h:MAX_H_DOC, max:MAX_SIZE_DOC}); }
   plantaDoc = {
     name: safeName(f.name),
     file: fOut,
@@ -744,7 +681,6 @@ pickDocPlanta.addEventListener('change', async ()=>{
   renderPlantaDoc();
   pickDocPlanta.value = '';
 });
-
 function renderPlantaDoc(){
   thumbsDocPlanta.innerHTML = '';
   if(!plantaDoc){
@@ -779,9 +715,9 @@ function renderPlantaDoc(){
   }
 }
 
-/* =========================
+/* ==========
    Validaciones
-========================= */
+========== */
 function validForm(){
   const need = ['folio','fecha_servicio','hora_llegada','hora_inicio_cal','hora_termino','tecnico','planta','responsable_packing'];
   for(const n of need){
@@ -817,12 +753,9 @@ function validForm(){
   return {ok:true};
 }
 
-/* =========================
-   GAS endpoint
-========================= */
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzY7MeT5bBUDVCbl7UAi1_tkWkKxydFteBXhHDvoBbxk3stVBFWINtitmpxURkGFHLX/exec';
-
-/* === NEW: construir JSON (sin blobs) con fileIds === */
+/* ==========
+   Construir payload JSON (fileIds)
+========== */
 function buildPayloadJSON(uploadMap, plantaDocId){
   const gen = {};
   ['folio','fecha_servicio','hora_llegada','hora_inicio_cal','hora_termino','tecnico','planta','responsable_packing','viaje','comentarios']
@@ -832,7 +765,7 @@ function buildPayloadJSON(uploadMap, plantaDocId){
     });
 
   const cards = Array.from(document.querySelectorAll('#containers .container-card'));
-  const containers = cards.map((card, idx)=>{
+  const containers = cards.map((card)=>{
     const id = card.dataset.uid;
     const cont   = (document.querySelector(`[name="c${id}_container"]`)?.value || '').trim().toUpperCase();
     const book   = (document.querySelector(`[name="c${id}_booking"]`)?.value || '').trim();
@@ -841,15 +774,7 @@ function buildPayloadJSON(uploadMap, plantaDocId){
     const ht = readHeaderTimes(card);
     const lecturas = readTableValues(card);
     const fileIds = uploadMap.get(Number(id)) || [];
-    return {
-      container: cont,
-      booking: book,
-      naviera_sel: navSel,
-      naviera_otra: navOtra,
-      ht,
-      lecturas,
-      fileIds
-    };
+    return { container: cont, booking: book, naviera_sel: navSel, naviera_otra: navOtra, ht, lecturas, fileIds };
   });
 
   return {
@@ -861,9 +786,9 @@ function buildPayloadJSON(uploadMap, plantaDocId){
   };
 }
 
-/* =========================
+/* ==========
    UI de estado
-========================= */
+========== */
 function showLoading() {
   $('#loadingIcon').style.display = 'inline';
   $('#submitBtn').disabled = true;
@@ -884,21 +809,9 @@ function showError(msg){
   $('#msg').textContent = 'Error: ' + (msg || 'desconocido');
 }
 
-/* === NEW: envío JSON al GAS (sin blobs) === */
-async function postJSONToGas(payload){
-  const r = await fetch(GAS_URL, {
-    method:'POST',
-    headers:{ 'Content-Type':'text/plain;charset=utf-8' },
-    body: JSON.stringify(payload),
-    redirect:'follow',
-    cache:'no-store'
-  });
-  const txt = await r.text();
-  try { return JSON.parse(txt); } catch { return { ok:false, raw: txt }; }
-  }
-
-
-/* --- SUBMIT: NUEVO FLUJO Direct-to-Drive + JSON --- */
+/* ==========
+   Submit: Direct-to-Drive + JSON a GAS
+========== */
 const formEl = document.getElementById('cotForm');
 if (formEl){
   formEl.addEventListener('submit', async (e)=>{
@@ -914,16 +827,15 @@ if (formEl){
 
     showLoading();
     try{
-      // 1) Garantizar token GIS
       await getTokenGIS(true);
 
       // 2) Subir Documento de planta
       let plantaDocId = '';
       if (plantaDoc && plantaDoc.file){
-        plantaDocId = await runLimited(()=>uploadFileToDrive(plantaDoc.file, FOLDER_BASE_ID));
+        plantaDocId = await uploadFileToDrive(plantaDoc.file, FOLDER_BASE_ID);
       }
 
-      // 3) Subir fotos por contenedor (concurrencia limitada)
+      // 3) Subir archivos por contenedor con concurrencia simple
       const cards = Array.from(document.querySelectorAll('#containers .container-card'));
       const uploadMap = new Map(); // idNum -> [fileIds]
 
@@ -931,24 +843,21 @@ if (formEl){
         const idNum = Number(card.dataset.uid);
         const store = photoStores.get(idNum) || [];
         const ids = [];
-        // sube en paralelo con runLimited
-        await Promise.all(store.map(p=> runLimited(async ()=>{
+        for (const p of store){
           const fileId = await uploadFileToDrive(p.file, FOLDER_BASE_ID);
           ids.push(fileId);
-        })));
+        }
         uploadMap.set(idNum, ids);
       }
 
-      // 4) Armar JSON y enviar a GAS
+      // 4) Enviar JSON a GAS
       const payload = buildPayloadJSON(uploadMap, plantaDocId);
       const res = await postJSONToGas(payload);
       console.log('Direct-to-Drive OK:', res);
       showSuccess('Directo a Drive + JSON');
 
-      // (opcional) limpiar estado tras éxito
-      // formEl.reset(); // si quieres
-      // photoStores.clear(); renderThumbs de cada card, etc.
-
+      // (opcional) reset
+      // formEl.reset(); photoStores.clear();
     }catch(err){
       console.error('Error envío COT', err);
       showError(err?.message || 'Error de envío');
@@ -956,23 +865,18 @@ if (formEl){
   }, true);
 }
 
-/* Botón de prueba de validaciones */
+/* Botón de prueba */
 document.getElementById('testBtn')?.addEventListener('click', ()=>{
   const v = validForm();
   $('#msg').textContent = v.ok ? 'Validaciones OK.' : v.msg;
 });
 
-/* =========================
-   UX extra: título dinámico y formato contenedor
-========================= */
+/* UX extra: título dinámico y formato contenedor */
 document.addEventListener('input', (e)=>{
   const el = e.target;
-
-  // Forzar formato ISO 6346 (4 letras + 7 dígitos) y mayúsculas (máx. 11)
   if(el.name && /_container$/.test(el.name)){
     const raw = (el.value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
     el.value = raw.slice(0,11);
-
     const card = el.closest('.container-card');
     if(card){
       const idx = Array.from($$('#containers .container-card')).indexOf(card)+1;
@@ -982,7 +886,7 @@ document.addEventListener('input', (e)=>{
   }
 });
 
-/* Cerrar overlay con ESC */
+/* ESC cierra overlay */
 document.addEventListener('keydown', (e)=>{
   if(e.key==='Escape'){
     document.getElementById('overlay')?.classList.remove('show');
@@ -990,7 +894,7 @@ document.addEventListener('keydown', (e)=>{
   }
 });
 
-/* Polyfill simple para createImageBitmap en navegadores antiguos */
+/* Polyfill para createImageBitmap */
 if (typeof createImageBitmap === 'undefined') {
   window.createImageBitmap = async function(file){
     return await new Promise((resolve, reject)=>{
@@ -1008,12 +912,16 @@ if (typeof createImageBitmap === 'undefined') {
   };
 }
 
-/* Guardas finales: evitar doble submit por Enter en inputs */
+/* Evitar Enter=>submit en inputs */
 formEl?.addEventListener('keydown', (e)=>{
   if(e.key==='Enter' && e.target.tagName==='INPUT'){
     e.preventDefault();
   }
 });
+/* --- Fin Parte 2/3 --- */
+/* --- Parte 3/3 --- */
+/* Inicializa GIS cuando cargue la página (no rompe si ya está inicializado) */
+window.addEventListener('load', ()=>{ try{ initGIS(); }catch(_){} });
 </script>
 </body>
 </html>
