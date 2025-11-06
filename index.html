@@ -875,7 +875,7 @@ async function postJSONToGas(payload){
   const txt = await r.text();
   try { return JSON.parse(txt); } catch { return { ok:false, raw: txt }; }
   }
-}
+
 
 /* --- SUBMIT: NUEVO FLUJO Direct-to-Drive + JSON --- */
 const formEl = document.getElementById('cotForm');
