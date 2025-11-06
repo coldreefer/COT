@@ -354,6 +354,7 @@ async function uploadFileToDrive(file, parentId){
   if (!put.ok) throw new Error('Error upload: '+put.status+' '+(await put.text()));
   const json = await put.json();
   if (parentId && (!json.parents || !json.parents.length)){
+  }
   return json.id; // fileId
 }
 
