@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>COT — Reporte Digital v08</title>
+<title>COT — Reporte Digital v09</title>
 <meta name="color-scheme" content="light">
 <style>
   :root{
@@ -867,13 +867,14 @@ function showError(msg){
 async function postJSONToGas(payload){
   const r = await fetch(GAS_URL, {
     method:'POST',
-    headers:{ 'Content-Type':'application/json' },
-    body: JSON.stringify(payload)
+    headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload),
+    redirect:'follow',
+    cache:'no-store'
   });
-  if(!r.ok){
-    throw new Error(`HTTP ${r.status} ${r.statusText} - ${await r.text()}`);
+  const txt = await r.text();
+  try { return JSON.parse(txt); } catch { return { ok:false, raw: txt }; }
   }
-  return await r.text();
 }
 
 /* --- SUBMIT: NUEVO FLUJO Direct-to-Drive + JSON --- */
