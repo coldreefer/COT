@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>COT — Reporte Digital v18</title>
+<title>COT — Reporte Digital v19</title>
 <meta name="color-scheme" content="light">
 <style>
   :root{
@@ -381,7 +381,7 @@ function createLimiter(max=3){
     });
   };
 }
-const runLimited = createLimiter(3);
+const runLimited = createLimiter(5);
 
 /* ==========
    Helpers
@@ -902,6 +902,24 @@ async function postJSONToGas(payload){
   try { return JSON.parse(txt); } catch { return { ok:false, raw: txt }; }
 }
 
+async function preflightBatch(items){
+  const payload = {
+    op: 'preflight_batch',
+    fecha_servicio: document.querySelector('[name="fecha_servicio"]').value,
+    viaje: (document.querySelector('[name="viaje"]')?.value || '')
+            .toString().trim(),
+    items: items
+  };
+  const r = await fetch(GAS_URL, {
+    method:'POST',
+    headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  });
+  const j = await r.json();
+  if(!j.ok) throw new Error(j.msg || 'Preflight falló');
+  return j.map; // { [id]: { unitFolderId, path } }
+}
+  
 /* --- SUBMIT: Direct-to-Drive + JSON --- */
 const formEl = document.getElementById('cotForm');
 if (formEl){
@@ -921,32 +939,61 @@ if (formEl){
       // 1) Token GIS
       await getTokenGIS(true);
 
-      // 2) Subir Documento de planta
-      let plantaDocId = '';
-      if (plantaDoc && plantaDoc.file){
-        plantaDocId = await runLimited(()=>uploadFileToDrive(plantaDoc.file, FOLDER_BASE_ID));
-      }
-
-      // 3) Subir fotos por contenedor (concurrencia limitada)
+      // 2) PRE-FLIGHT (batch) — juntar info por contenedor
       const cards = Array.from(document.querySelectorAll('#containers .container-card'));
-      const uploadMap = new Map();
+      const pfItems = cards.map((card)=>{
+        const id = Number(card.dataset.uid);
+        const navSel  = (document.querySelector(`[name="c${id}_naviera_sel"]`)?.value || '').trim();
+        const navOtra = (document.querySelector(`[name="c${id}_naviera_otra"]`)?.value || '').trim();
+        const navFinal = (navSel === 'Otra') ? (navOtra || 'Otra') : (navSel || 'SIN_NAVIERA');
+        const cont = (document.querySelector(`[name="c${id}_container"]`)?.value || '').toUpperCase().trim();
+        return { id, naviera: navFinal, container: cont };
+      });
+
+      // 👉 FALTABA ESTO:
+      const preMap = await preflightBatch(pfItems); // { [id]: { unitFolderId, path } }
+
+      // 3) Subir (directo a la carpeta FINAL de cada unidad)
+      let plantaDocId = '';
+      const uploadMap = new Map(); // idNum -> [fileIds]
+      for (const card of cards) uploadMap.set(Number(card.dataset.uid), []);
 
       for (const card of cards){
         const idNum = Number(card.dataset.uid);
         const store = photoStores.get(idNum) || [];
+        const unitFolderId = preMap[idNum]?.unitFolderId;
+        if (!unitFolderId) throw new Error('Sin unitFolderId para contenedor #' + idNum);
+
         const ids = [];
-        await Promise.all(store.map(p=> runLimited(async ()=>{
-          const fileId = await uploadFileToDrive(p.file, FOLDER_BASE_ID);
+        // Fotos/archivos de la unidad
+        await Promise.all(store.map(p => runLimited(async ()=>{
+          const fileId = await uploadFileToDrive(p.file, unitFolderId); // ← sube directo a la subcarpeta
           ids.push(fileId);
         })));
+
+        // (Opcional) Documento de planta replicado en cada unidad
+        if (plantaDoc && plantaDoc.file){
+          const pid = await runLimited(() => uploadFileToDrive(plantaDoc.file, unitFolderId));
+          plantaDocId = pid; // último subido, por si lo necesitas a nivel general
+          ids.push(pid);
+        }
+
+        // 👉 Y ESTO TAMBIÉN FALTABA:
         uploadMap.set(idNum, ids);
       }
 
-      // 4) Armar JSON y enviar a GAS
+      // 4) Armar JSON con fileIds finales y registrar en Sheet
       const payload = buildPayloadJSON(uploadMap, plantaDocId);
-      const res = await postJSONToGas(payload);
-      console.log('Direct-to-Drive OK:', res);
-      showSuccess('Directo a Drive + JSON');
+
+      // Añadir la ruta (folder_path) desde preMap por unidad
+      payload.containers = payload.containers.map((c, i)=>{
+        const id = Number(cards[i].dataset.uid);
+        return { ...c, folder_path: preMap[id].path };
+      });
+
+      const res = await postJSONToGas({ op:'register', ...payload });
+      console.log('Registro OK:', res);
+      showSuccess('Subida directa a carpeta de unidad + registro');
 
       // Opcional: limpiar
       // formEl.reset();
