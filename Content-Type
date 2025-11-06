@@ -323,7 +323,7 @@ function getTokenGIS(interactive = true){
 async function startResumableSession(file, parentId, token){
   const meta = { name: file.name };
   if (parentId) meta.parents = [parentId];
-  const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable', {
+  const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true&fields=id,parents', {
     method:'POST',
     headers:{
       'Authorization':'Bearer '+token,
@@ -342,7 +342,7 @@ async function startResumableSession(file, parentId, token){
 async function uploadFileToDrive(file, parentId){
   const token = await getTokenGIS(true);
   const sessionURL = await startResumableSession(file, parentId, token);
-  const put = await fetch(sessionURL, {
+  const put = await fetch(sessionURL + '&supportsAllDrives=true&fields=id,parents', {
     method:'PUT',
     headers:{
       'Authorization':'Bearer '+token,
@@ -353,6 +353,7 @@ async function uploadFileToDrive(file, parentId){
   });
   if (!put.ok) throw new Error('Error upload: '+put.status+' '+(await put.text()));
   const json = await put.json();
+  if (parentId && (!json.parents || !json.parents.length)){
   return json.id; // fileId
 }
 
