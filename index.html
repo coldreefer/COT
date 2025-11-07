@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>COT — Reporte Digital v21</title>
+<title>COT — Reporte Digital v22</title>
 <meta name="color-scheme" content="light">
 <style>
-  :root{f
+  :root{
     --bg:#f6f8fb; --surface:#ffffff; --ink:#0f172a; --muted:#64748b; --line:#e5e7eb;
     --brand:#0b74c7; --danger:#b91c1c;
     --radius:10px; --pad:10px; --gap:4px; --thin:1px;
@@ -243,8 +243,6 @@
 <div id="overlay" class="overlay"></div>
 <div id="mSheet" class="sheet"></div>
 
-<!-- Google Identity Services -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <script>
 /* ==========
@@ -253,12 +251,8 @@
 const $ = (s)=>document.querySelector(s);
 const $$ = (s)=>Array.from(document.querySelectorAll(s));
 
-/* ========== CONFIG OAuth + carpeta base Drive ========== */
-const GIS_CONFIG = {
-  CLIENT_ID: '212179869111-1g9f7ga5be885t5qf5bcsouk23ud19cd.apps.googleusercontent.com',
-  SCOPES: 'https://www.googleapis.com/auth/drive.file'
-};
-let FOLDER_BASE_ID = '1EIEMeZ4ikwbQ701xirnEXOOeMzxJLnRy';
+
+//let FOLDER_BASE_ID = '1EIEMeZ4ikwbQ701xirnEXOOeMzxJLnRy';
 
 /* ==========
    Estado
@@ -267,100 +261,49 @@ let uid = 0;
 const photoStores = new Map();   // id -> [{name,file,size,mimeType,isImg}]
 let plantaDoc = null;            // {name,file,size,mimeType,isImg} | null
 
-/* ========== AUTH (GIS) ========== */
-let _gisToken = null;
-let _gisTokenExp = 0;
-let _gisClient = null;
-let _gisPendingResolve = null;
-let _gisPendingReject  = null;
 
-function initGIS() {
-  if (_gisClient) return;
-  _gisClient = google.accounts.oauth2.initTokenClient({
-    client_id: GIS_CONFIG.CLIENT_ID,
-    scope: GIS_CONFIG.SCOPES,
-    prompt: '',
-    callback: (resp) => {
-      if (resp && resp.access_token) {
-        _gisToken = resp.access_token;
-        _gisTokenExp = Date.now() + ((resp.expires_in || 3600) * 1000) - 60000;
-        if (_gisPendingResolve) _gisPendingResolve(_gisToken);
-        _gisPendingResolve = null;
-        _gisPendingReject = null;
-      } else {
-        if (_gisPendingReject) _gisPendingReject(new Error('No se obtuvo token GIS'));
-        _gisPendingResolve = null;
-        _gisPendingReject = null;
-      }
-    }
+/* ========== Helpers Drive — sesión resumible vía GAS (propiedad Shared Drive) ========== */
+async function startResumableSessionViaGAS(fileName, parentId, size, mime){
+  const r = await fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json' },
+    body: JSON.stringify({
+      op: 'new_session',
+      name: fileName,
+      parentId,
+      size,
+      mimeType: mime || 'application/octet-stream'
+    })
   });
-}
-
-function getTokenGIS(interactive = true){
-  return new Promise((resolve, reject)=>{
-    if (_gisToken && Date.now() < _gisTokenExp) return resolve(_gisToken);
-    _gisPendingResolve = resolve;
-    _gisPendingReject = reject;
-    if (!_gisClient) initGIS();
-    try {
-      _gisClient.requestAccessToken({ prompt: interactive ? 'consent' : '' });
-    } catch(e) { reject(e); }
-  });
-}
-
-/* ========== Helpers Drive — subida resumible ========== */
-async function startResumableSession(file, parentId, token){
-  const meta = { name: file.name };
-  if (parentId) meta.parents = [parentId];
-  const r = await fetch(
-    'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true&fields=id,parents',
-    {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + token,
-        'Content-Type': 'application/json; charset=UTF-8',
-        'X-Upload-Content-Type': file.type || 'application/octet-stream',
-        'X-Upload-Content-Length': file.size
-      },
-      body: JSON.stringify(meta)
-    }
-  );
-  if (!r.ok) throw new Error('Error init resumable: ' + r.status + ' ' + (await r.text()));
-  const loc = r.headers.get('Location');
-  if (!loc) throw new Error('Sin Location de sesión resumible');
-  return loc;
+  const j = await r.json().catch(()=> ({}));
+  if(!j || !j.ok || !j.sessionURL) throw new Error(j.msg || 'new_session falló');
+  return j.sessionURL;
 }
 
 async function uploadFileToDrive(file, parentId){
-  const token = await getTokenGIS(true);
-  const sessionURL = await startResumableSession(file, parentId, token);
+  const sessionURL = await startResumableSessionViaGAS(
+    file.name,
+    parentId,
+    file.size,
+    file.type || 'application/octet-stream'
+  );
 
-  // IMPORTANTE: no agregues query params a la URL de sesión.
   const put = await fetch(sessionURL, {
     method: 'PUT',
-    headers: {
-      'Authorization': 'Bearer ' + token,
-      'Content-Type': file.type || 'application/octet-stream'
-      // No setear 'Content-Length' manual en navegador.
-    },
+    headers: { 'Content-Type': file.type || 'application/octet-stream' },
     body: file
   });
 
   if (!put.ok) {
     throw new Error('Error upload: ' + put.status + ' ' + (await put.text()));
   }
-
-  // Puede devolver JSON o cuerpo vacío. Intentamos parsear por si acaso.
   const txt = await put.text();
   let json = {};
   if (txt) { try { json = JSON.parse(txt); } catch(_) {} }
-
-  if (!json.id) {
-    // Si el endpoint no devolvió JSON, podrías hacer un GET después si lo necesitas.
-    throw new Error('Subida correcta pero sin id devuelto por Drive.');
-  }
+  if (!json.id) throw new Error('Subida correcta pero sin id devuelto por Drive.');
   return json.id;
 }
+
 
 /* ========== Limitador concurrencia ========== */
 function createLimiter(max=3){
@@ -834,7 +777,7 @@ function validForm(){
 /* =========================
    GAS endpoint
 ========================= */
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxlEu5Szqa3DwzGfEKZ91FONufd_DOovzgUH8pHFkTYXIz1licfKVZaRdJM56dl1KwFfg/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyuu5la8VdQP2d5PcuRGz6RiSqv9uOwr0O1KaQjo6qA8N2hLUL2rfapQiubU2et9WSR2g/exec';
 
 function buildPayloadJSON(uploadMap, plantaDocId){
   const gen = {};
@@ -936,10 +879,8 @@ if (formEl){
 
     showLoading();
     try{
-      // 1) Token GIS
-      await getTokenGIS(true);
 
-      // 2) PRE-FLIGHT (batch) — juntar info por contenedor
+      // 1) PRE-FLIGHT (batch) — obtener unitFolderId por contenedor
       const cards = Array.from(document.querySelectorAll('#containers .container-card'));
       const pfItems = cards.map((card)=>{
         const id = Number(card.dataset.uid);
@@ -953,7 +894,7 @@ if (formEl){
       // 👉 FALTABA ESTO:
       const preMap = await preflightBatch(pfItems); // { [id]: { unitFolderId, path } }
 
-      // 3) Subir (directo a la carpeta FINAL de cada unidad)
+      // 2) Subir (directo a la carpeta FINAL de cada unidad)
       let plantaDocId = '';
       const uploadMap = new Map(); // idNum -> [fileIds]
       for (const card of cards) uploadMap.set(Number(card.dataset.uid), []);
@@ -1060,8 +1001,7 @@ formEl?.addEventListener('keydown', (e)=>{
   }
 });
 
-/* Inicializa GIS cuando cargue la página */
-window.addEventListener('load', ()=>{ try{ initGIS(); }catch(_){} });
+
 </script>
 </body>
 </html>
