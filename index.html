@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>COT — Reporte Digital v24</title>
+<title>COT — Reporte Digital v25</title>
 <meta name="color-scheme" content="light">
 <style>
   :root{
@@ -280,6 +280,24 @@ async function startResumableSessionViaGAS(fileName, parentId, size, mime){
   return j.sessionURL;
 }
 
+async function putWithRetry(url, file, tries=3){
+  let lastErr;
+  for(let i=0;i<tries;i++){
+    try{
+      const r = await fetch(url, {
+        method:'PUT',
+        headers:{ 'Content-Type': file.type || 'application/octet-stream' },
+        body:file
+      });
+      if (r.ok) return r;
+      lastErr = new Error('HTTP '+r.status+' '+await r.text());
+    }catch(e){ lastErr = e; }
+    // backoff: 0.5s, 1.0s, 1.5s…
+    await new Promise(r=>setTimeout(r, 500*(i+1)));
+  }
+  throw lastErr || new Error('PUT failed');
+}
+
 async function uploadFileToDrive(file, parentId){
   const sessionURL = await startResumableSessionViaGAS(
     file.name,
@@ -288,21 +306,15 @@ async function uploadFileToDrive(file, parentId){
     file.type || 'application/octet-stream'
   );
 
-  const put = await fetch(sessionURL, {
-    method: 'PUT',
-    headers: { 'Content-Type': file.type || 'application/octet-stream' },
-    body: file
-  });
+  const put = await putWithRetry(sessionURL, file, 3);
 
-  if (!put.ok) {
-    throw new Error('Error upload: ' + put.status + ' ' + (await put.text()));
-  }
   const txt = await put.text();
   let json = {};
   if (txt) { try { json = JSON.parse(txt); } catch(_) {} }
   if (!json.id) throw new Error('Subida correcta pero sin id devuelto por Drive.');
   return json.id;
 }
+
 
 
 /* ========== Limitador concurrencia ========== */
@@ -906,10 +918,15 @@ if (formEl){
         if (!unitFolderId) throw new Error('Sin unitFolderId para contenedor #' + idNum);
 
         const ids = [];
-        // Fotos/archivos de la unidad
+        // Fotos/archivos de la unidad (tolerante a fallos)
         await Promise.all(store.map(p => runLimited(async ()=>{
-          const fileId = await uploadFileToDrive(p.file, unitFolderId); // ← sube directo a la subcarpeta
-          ids.push(fileId);
+          try{
+            const fileId = await uploadFileToDrive(p.file, unitFolderId);
+            ids.push(fileId);
+
+          }catch(e){
+            console.warn('Falló este archivo, continúo:', p.name, e);
+          }
         })));
 
         // (Opcional) Documento de planta replicado en cada unidad
